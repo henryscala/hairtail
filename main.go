@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
+	"log"
 )
 
 //command flags
@@ -13,27 +13,28 @@ var (
 )
 
 func main() {
+	log.SetFlags(log.Lshortfile)
 	flag.Parse()
 
 	inputContent, err := ioutil.ReadFile(*gInputFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	chunks, err := ParseChunks(string(inputContent))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
-	fmt.Println("debug chunks: ", chunks)
+	log.Println("intermediate chunks: ", chunks)
 	outputContent, err := ChunkListRender(chunks)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	err = ioutil.WriteFile(*gOutputFile, []byte(outputContent), 0666)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return
 }

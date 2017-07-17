@@ -63,7 +63,7 @@ func InlineChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 			outputChunks = append(outputChunks, chunk)
 			continue
 		}
-		fmt.Println(">>>>> inline handle works")
+
 		if i+1 >= len(inputChunks) {
 			return outputChunks, errors.New("inline format does not follow a chunk")
 		}

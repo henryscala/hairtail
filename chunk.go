@@ -137,10 +137,6 @@ func ParseChunks(input string) ([]Chunk, error) {
 		return chunks, err
 	}
 
-	fmt.Println("//////")
-	fmt.Println("after inline chunk handle:", chunks)
-	fmt.Println("///////")
-
 	chunks, err = SectionChunkHandle(chunks)
 	if err != nil {
 		return chunks, err
