@@ -1,0 +1,16 @@
+
+	\h{intro} introduction of hairtail
+
+	hairtail is a tool
+
+	\h2{input-grammar} input grammar
+
+	input grammar contains \e{inline} grammar. 
+
+	input grammar contains \e{section} grammar.
+
+    \h2{output-grammar} output format 
+
+	output format support markdown and html. 
+
+	But \s{html} with higher priority. 
