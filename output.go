@@ -2,9 +2,8 @@ package main
 
 import (
 	"bytes"
-	"html/template"
-	"log"
 	"fmt"
+	"text/template"
 )
 
 type OutputRenderFunc func(chunk Chunk) (string, error)
@@ -22,7 +21,7 @@ func init() {
 	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>`)
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
-	gHyperLinkTemplate,_ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
+	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -108,12 +107,10 @@ func ChunkListRender(chunkList []Chunk) (string, error) {
 
 func InlineChunkRender(chunk Chunk) (string, error) {
 	inlineChunk := chunk.(*InlineChunk)
-	inlineChunkDescription,_ :=gInlineFormatKeywordMap[inlineChunk.Keyword]
+	inlineChunkDescription, _ := gInlineFormatKeywordMap[inlineChunk.Keyword]
 	if inlineChunkDescription.NumEmbracedBlock > len(inlineChunk.Children) {
 		return "", fmt.Errorf("not enough children for this inine format %v", inlineChunk.Keyword)
 	}
-
-
 
 	var err error
 	var text string
@@ -133,14 +130,12 @@ func InlineChunkRender(chunk Chunk) (string, error) {
 			return text, err
 		}
 
-
 		err = gStrongTemplate.Execute(&buf, text)
 	case HyperLink:
-		log.Println("HyperLinkChunk:",inlineChunk)
 		text1 := inlineChunk.Children[0].(*EmbracedChunk).Children[0].GetValue()
 		text2 := inlineChunk.Children[1].(*EmbracedChunk).Children[0].GetValue()
 
-		err = gHyperLinkTemplate.Execute(&buf, struct{Url, Text template.HTML}{template.HTML(text1),template.HTML(text2)})
+		err = gHyperLinkTemplate.Execute(&buf, struct{ Url, Text string }{text1, text2})
 	default:
 		panic("not implemented")
 	}
@@ -155,7 +150,7 @@ func PlainTextChunkRender(chunk Chunk) (string, error) {
 	paragraphList := plainTextChunk.ToParagraphList()
 	var buf bytes.Buffer
 	for _, paragraph := range paragraphList {
-		gParagraphTemplate.Execute(&buf, template.HTML(paragraph) /*to avoid html escape*/)
+		gParagraphTemplate.Execute(&buf, paragraph)
 	}
 	return buf.String(), nil
 }

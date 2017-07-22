@@ -26,7 +26,7 @@ func main() {
 		log.Println(err)
 		return
 	}
-	log.Println("intermediate chunks: ", chunks)
+
 	outputContent, err := ChunkListRender(chunks)
 	if err != nil {
 		log.Println(err)

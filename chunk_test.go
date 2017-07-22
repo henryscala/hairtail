@@ -105,7 +105,7 @@ func TestRawTextChunkHandle(t *testing.T) {
 	}
 
 	//test one chunk of raw text that contains meta chars
-	text = `\r~~{\{}~}~~`
+	text = `\r##{\{}#}##`
 	chunkList, err = RawTextChunkHandle(text)
 	if err != nil {
 		t.Fatal(err)
@@ -114,12 +114,12 @@ func TestRawTextChunkHandle(t *testing.T) {
 		t.FailNow()
 	}
 	chunk = chunkList[0]
-	if chunk.GetValue() != `\{}~` {
+	if chunk.GetValue() != `\{}#` {
 		t.Fatal(chunk)
 	}
 
 	//test multiple chunks of raw text
-	text = `1\r~{aaa}~2\r~{bbb}~3`
+	text = `1\r#{aaa}#2\r#{bbb}#3`
 	chunkList, err = RawTextChunkHandle(text)
 	if err != nil {
 		t.FailNow()
@@ -149,11 +149,11 @@ func TestRawTextChunkHandle(t *testing.T) {
 	//test multiple line raw text
 	text = `
 	//followed are computer code 
-	\r~~{
+	\r##{
 		int main () {
 			return 0; 
 		}
-	}~~
+	}##
 	`
 	chunkList, err = RawTextChunkHandle(text)
 	if err != nil {
@@ -244,7 +244,7 @@ func TestMetaCharChunkHandle(t *testing.T) {
 	}
 
 	//test escaped meta chars
-	text = `a\\\{\}\~b`
+	text = `a\\\{\}\#b`
 	chunkList, err = metaCharChunkHandle(text)
 	if err != nil {
 		t.FailNow()
@@ -252,7 +252,7 @@ func TestMetaCharChunkHandle(t *testing.T) {
 	if len(chunkList) != 1 {
 		t.FailNow()
 	}
-	if chunkList[0].GetValue() != `a\{}~b` {
+	if chunkList[0].GetValue() != `a\{}#b` {
 		t.FailNow()
 	}
 

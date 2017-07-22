@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 )
 
 //meta characters
@@ -12,7 +11,7 @@ const (
 	EscapeChar     string = "\\"
 	LeftBraceChar  string = "{"
 	RightBraceChar string = "}"
-	TildeChar      string = "~"
+	FillerChar     string = "#"
 )
 
 const (
@@ -27,7 +26,7 @@ const (
 
 var (
 	//MetaChars contains all meta characters in slice
-	MetaChars = []string{EscapeChar, LeftBraceChar, RightBraceChar, TildeChar}
+	MetaChars = []string{EscapeChar, LeftBraceChar, RightBraceChar, FillerChar}
 	//MetaCharMap contains all meta characters in map to be lookup
 	MetaCharMap = make(map[string]bool)
 )
@@ -132,16 +131,12 @@ func ParseChunks(input string) ([]Chunk, error) {
 	if err != nil {
 		return chunks, err
 	}
-	log.Println("//////////////// after KeywordChunkHandle begin")
-	log.Println("chunks:", chunks)
-	log.Println("//////////////// after KeywordChunkHandle end")
+
 	chunks, err = InlineChunkHandle(chunks)
 	if err != nil {
 		return chunks, err
 	}
-	log.Println("//////////////// after InlineChunkHandle begin")
-	log.Println("chunks:", chunks)
-	log.Println("//////////////// after InlineChunkHandle end")
+
 	chunks, err = SectionChunkHandle(chunks)
 	if err != nil {
 		return chunks, err
@@ -202,8 +197,8 @@ func RawTextChunkHandle(input string) ([]Chunk, error) {
 
 	waitFillCharOrLeftBraceStateHandle = func(pos int, arune rune) (stateHandle, error) {
 		astr := string(arune)
-		if astr == TildeChar {
-			rawTextFillStr += TildeChar
+		if astr == FillerChar {
+			rawTextFillStr += FillerChar
 			return waitFillCharOrLeftBraceStateHandle, nil // state not change
 		}
 		if astr == LeftBraceChar {
