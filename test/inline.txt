@@ -1,0 +1,7 @@
+the \e{keyword} is emphasized. 
+
+i don't like \e{game}, remember?
+
+this is \s{stong} text 
+
+this is \e{\s{nested}} 

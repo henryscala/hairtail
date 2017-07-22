@@ -14,6 +14,10 @@ STRONG : '\\s' ;
 
 HYPER_LINK : '\\w' ; 
 
+ANCHOR : '\\a' ; 
+
+INDEX : '\\I' ; 
+
 IMAGE : '\\image' ; 
 
 RAW : '\\r' ; 
@@ -70,7 +74,7 @@ embraced_id : LBRACE WS* ID WS* RBRACE ;
 
 embraced_block : LBRACE block RBRACE ; 
 
-section_header :  SECTION_MARK SECTION_LEVEL? embraced_block string LINE_END ; 
+section_header :  SECTION_MARK SECTION_LEVEL? (LBRACE ID RBRACE) string LINE_END ; 
 
 blocks : block* ; 
 
@@ -82,7 +86,11 @@ emphasis_block :  EMPHASIS embraced_block ;
 
 strong_block :  STRONG embraced_block ; 
 
-refer_to_block : REFER_TO (LBRACE string RBRACE) ; 
+refer_to_block : REFER_TO (LBRACE ID RBRACE) (LBRACE string RBRACE); 
+
+anchor_block : ANCHOR (LBRACE ID RBRACE) (LBRACE string RBRACE) ; 
+
+index_block : INDEX (LBRACE string RBRACE) ; 
 
 inline_comment_block : COMMENT (LBRACE string RBRACE) ; 
 
@@ -101,7 +109,9 @@ inline_block : emphasis_block
              | inline_code 
              | inline_tex
              | refer_to_block 
-             | inline_comment 
+             | inline_comment
+			| anchor_block 
+			| index_block 
              ; 
 
 list_block : bullet_list_block | order_list_block ; 

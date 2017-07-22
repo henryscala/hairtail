@@ -255,5 +255,4 @@ func TestMetaCharChunkHandle(t *testing.T) {
 	if chunkList[0].GetValue() != `a\{}#b` {
 		t.FailNow()
 	}
-
 }

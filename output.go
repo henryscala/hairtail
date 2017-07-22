@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 )
 
@@ -79,6 +78,8 @@ func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
 
 func ChunkRender(chunk Chunk) (string, error) {
 	switch chunk.(type) {
+	case *KeywordChunk:
+		return KeywordChunkRender(chunk)
 	case *PlainTextChunk:
 		return PlainTextChunkRender(chunk)
 	case *SectionChunk:
@@ -105,12 +106,38 @@ func ChunkListRender(chunkList []Chunk) (string, error) {
 	return buf.String(), nil
 }
 
+func KeywordChunkRender(chunk Chunk) (string, error) {
+	keywordChunk := chunk.(*KeywordChunk)
+	var err error
+	var text string
+	var buf bytes.Buffer
+	switch keywordChunk.Keyword {
+	case EmphasisFormat:
+		text, err = ChunkRender(keywordChunk.Children[0]) //only care one child
+		if err != nil {
+			return text, err
+		}
+		err = gEmphasisTemplate.Execute(&buf, text)
+		if err != nil {
+			return text, err
+		}
+	case StrongFormat:
+		text, err = ChunkRender(keywordChunk.Children[0]) //only care one child
+		if err != nil {
+			return text, err
+		}
+		err = gStrongTemplate.Execute(&buf, text)
+		if err != nil {
+			return text, err
+		}
+	default:
+		panic("not implemented")
+	}
+	return buf.String(), nil
+}
+
 func InlineChunkRender(chunk Chunk) (string, error) {
 	inlineChunk := chunk.(*InlineChunk)
-	inlineChunkDescription, _ := gInlineFormatKeywordMap[inlineChunk.Keyword]
-	if inlineChunkDescription.NumEmbracedBlock > len(inlineChunk.Children) {
-		return "", fmt.Errorf("not enough children for this inine format %v", inlineChunk.Keyword)
-	}
 
 	var err error
 	var text string
@@ -146,13 +173,7 @@ func InlineChunkRender(chunk Chunk) (string, error) {
 }
 
 func PlainTextChunkRender(chunk Chunk) (string, error) {
-	plainTextChunk := chunk.(*PlainTextChunk)
-	paragraphList := plainTextChunk.ToParagraphList()
-	var buf bytes.Buffer
-	for _, paragraph := range paragraphList {
-		gParagraphTemplate.Execute(&buf, paragraph)
-	}
-	return buf.String(), nil
+	return chunk.GetValue(), nil
 }
 
 func SectionChunkRender(chunk Chunk) (string, error) {

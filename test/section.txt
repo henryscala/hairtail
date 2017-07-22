@@ -5,9 +5,17 @@
 
 	\h2{input-grammar} input grammar
 
-	input grammar contains \e{inline} grammar. 
+	input grammar contains \e{inline} and \e{section} grammar. 
 
 	input grammar contains \e{section} grammar.
+	
+	\h3{raw-text} raw text 
+	raw text is in the below format: 
+	\r##{
+		void main(){
+			printf("%s", hello world); 
+		}
+	}##
 
     \h2{output-grammar} output format 
 
