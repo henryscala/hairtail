@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 )
 
 //meta characters
@@ -131,12 +132,16 @@ func ParseChunks(input string) ([]Chunk, error) {
 	if err != nil {
 		return chunks, err
 	}
-
+	log.Println("//////////////// after KeywordChunkHandle begin")
+	log.Println("chunks:", chunks)
+	log.Println("//////////////// after KeywordChunkHandle end")
 	chunks, err = InlineChunkHandle(chunks)
 	if err != nil {
 		return chunks, err
 	}
-
+	log.Println("//////////////// after InlineChunkHandle begin")
+	log.Println("chunks:", chunks)
+	log.Println("//////////////// after InlineChunkHandle end")
 	chunks, err = SectionChunkHandle(chunks)
 	if err != nil {
 		return chunks, err

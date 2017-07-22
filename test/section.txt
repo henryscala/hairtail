@@ -1,7 +1,7 @@
 
 	\h{intro} introduction of hairtail
 
-	hairtail is a tool
+	hairtail is a tool. Refer to \w{https://github.com/henryscala}{Henryscala} to get more info.
 
 	\h2{input-grammar} input grammar
 

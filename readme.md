@@ -2,16 +2,12 @@ A simple document preparation system mimicking [halibut](https://www.chiark.gree
 
 The input format is like halibut. 
 
-In the first step, the output format is markdown/html.
+The output format only support html now. More output formats may be supported in future.
 
-Basically it contains the functions equivalent with markdown, but with math support. 
+It also support rust like raw string using `\r~~{}~~` alike syntax. The number of `~` is [0-n], where n is to make sure that the text within the `{}` don't need to escape. Thus, the meta character of hairtail are `\{}~`. If they need to be shown in plain text, then they neeed to be escaped like `\\` and `\{\}\~`.
 
-It also support rust like raw string using `\r~~{}~~` alike syntax. The number of `~` is [0-n], where n is to make sure that the text within the `{}` don't need to escape.
-
-So the meta character of hairtail include `\{}~`. If they need to be shown in plain text, then they neeed to be escaped like `\\` and `\{\}\~`. 
-
-# implementation philosophy 
-Efferency is not the first important thing. There may be several passes while handling the input. 
+# implementation philosophy(or limitation)
+Efferency is not the first important thing. There may be several passes while handling the input. For now, it is difficult for me to write a one-pass parser.
 
 # input grammars
 ## headings 
@@ -22,13 +18,18 @@ Efferency is not the first important thing. There may be several passes while ha
 \h{intro-hairtail} Introduction of Hairtail 
 
 ## inline format 
-\e \s inline format command emphasis and strong 
+\e means emphasis. Counterpart of html is `<em></em>`.
+
+\s means strong. Counterpart of html is `<strong></strong>`
+
+\w is for hyper links. \w{https://github.com/henryscala}{Henryscala}.
 
 ## raw text 
 \r~~~{raw text inside, which may be multiple line}~~~, the number of ~ is [0-n]. The intention is that inside the brace, no escape is required. 
 
 ## TODO
-Handle blank char. It should not be so strict. blanks before or after some keyword or meta chars shall be ignored.
+Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.
 
-INline format should be with Paragraph, need to combine them 
+Generate Table
 
+Generate List that may be nested

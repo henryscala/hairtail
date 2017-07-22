@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 // InlineChunk denotes chunk for inline fomrmat
@@ -49,6 +50,21 @@ func (p *InlineChunk) GetValue() string {
 func InlineChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 	var outputChunks []Chunk
 	var err error
+
+	isFollowedChunksValid := func( index, num int ) error {
+		for i:=index; i< index+num; i++ {
+			_, isEmbracedChunk := inputChunks[i].(*EmbracedChunk)
+			if !isEmbracedChunk {
+				return errors.New("inline format followed by chunks other than EmbracedChunk")
+			}
+		}
+		return nil
+	}
+
+	accumulateChunks := func(index, num int) []Chunk {
+		return append([]Chunk{}, inputChunks[index:index+num]... )
+	}
+
 	//first pass, convert keywordChunk to inlineChunk
 	for i := 0; i < len(inputChunks); i++ {
 		chunk := inputChunks[i]
@@ -58,31 +74,35 @@ func InlineChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 			outputChunks = append(outputChunks, chunk)
 			continue
 		}
-
-		if _, ok := gInlineFormatKeywordMap[keywordChunk.Keyword]; !ok {
+		inlineFormatDescription, isInlineFormat := gInlineFormatKeywordMap[keywordChunk.Keyword]
+		if  !isInlineFormat{
 			outputChunks = append(outputChunks, chunk)
 			continue
 		}
 
-		if i+1 >= len(inputChunks) {
-			return outputChunks, errors.New("inline format does not follow a chunk")
+		if i + inlineFormatDescription.NumEmbracedBlock >= len(inputChunks) {
+			return outputChunks, fmt.Errorf("inline format does not follow enough number(%d) of chunks ", inlineFormatDescription.NumEmbracedBlock)
 		}
-		embracedChunk, isEmbracedChunk := inputChunks[i+1].(*EmbracedChunk)
-		if !isEmbracedChunk {
-			return outputChunks, errors.New("inline format does not follow a EmbracedChunk")
+
+		err = isFollowedChunksValid(i+1, inlineFormatDescription.NumEmbracedBlock)
+		if err != nil  {
+			return outputChunks, err
 		}
 
 		inlineChunk := &InlineChunk{Position: keywordChunk.Position,
 			Keyword:  keywordChunk.Keyword,
-			Children: embracedChunk.Children,
+			Children: accumulateChunks(i+1,inlineFormatDescription.NumEmbracedBlock),
 		}
+
 		inlineChunk.Children, err = InlineChunkHandle(inlineChunk.Children) //recursive call
 		if err != nil {
 			return outputChunks, errors.New("inline chunk handle failed in children")
 		}
+
 		outputChunks = append(outputChunks, inlineChunk)
-		i++ //jump the embraced chunk
+		i+=inlineFormatDescription.NumEmbracedBlock //jump the embraced chunk
 	}
+	log.Println("inlineChunk before render:", outputChunks)
 	//second pass, render inlineChunk. If the inlineChunk neighbors with PlainTextChunk, then merge them.
 	outputChunks, err = InlineChunkListRender(outputChunks)
 	return outputChunks, err

@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"html/template"
+	"log"
+	"fmt"
 )
 
 type OutputRenderFunc func(chunk Chunk) (string, error)
@@ -12,6 +14,7 @@ var (
 	gParagraphTemplate *template.Template
 	gEmphasisTemplate  *template.Template
 	gStrongTemplate    *template.Template
+	gHyperLinkTemplate *template.Template
 )
 
 func init() {
@@ -19,6 +22,7 @@ func init() {
 	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>`)
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
+	gHyperLinkTemplate,_ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -80,6 +84,11 @@ func ChunkRender(chunk Chunk) (string, error) {
 		return PlainTextChunkRender(chunk)
 	case *SectionChunk:
 		return SectionChunkRender(chunk)
+	case *InlineChunk:
+		return InlineChunkRender(chunk)
+	case *EmbracedChunk:
+		embracedChunk := chunk.(*EmbracedChunk)
+		return ChunkListRender(embracedChunk.Children)
 	default:
 		panic("not implemented")
 	}
@@ -99,14 +108,39 @@ func ChunkListRender(chunkList []Chunk) (string, error) {
 
 func InlineChunkRender(chunk Chunk) (string, error) {
 	inlineChunk := chunk.(*InlineChunk)
-	text := inlineChunk.Children[0].GetValue() //assume InlineFormat only has one child, and the child is plain text
+	inlineChunkDescription,_ :=gInlineFormatKeywordMap[inlineChunk.Keyword]
+	if inlineChunkDescription.NumEmbracedBlock > len(inlineChunk.Children) {
+		return "", fmt.Errorf("not enough children for this inine format %v", inlineChunk.Keyword)
+	}
+
+
+
 	var err error
+	var text string
 	var buf bytes.Buffer
+
 	switch inlineChunk.Keyword {
 	case EmphasisFormat:
+		text, err = ChunkRender(inlineChunk.Children[0]) //only care one child
+		if err != nil {
+			return text, err
+		}
+
 		err = gEmphasisTemplate.Execute(&buf, text)
 	case StrongFormat:
+		text, err = ChunkRender(inlineChunk.Children[0]) //only care one child
+		if err != nil {
+			return text, err
+		}
+
+
 		err = gStrongTemplate.Execute(&buf, text)
+	case HyperLink:
+		log.Println("HyperLinkChunk:",inlineChunk)
+		text1 := inlineChunk.Children[0].(*EmbracedChunk).Children[0].GetValue()
+		text2 := inlineChunk.Children[1].(*EmbracedChunk).Children[0].GetValue()
+
+		err = gHyperLinkTemplate.Execute(&buf, struct{Url, Text template.HTML}{template.HTML(text1),template.HTML(text2)})
 	default:
 		panic("not implemented")
 	}

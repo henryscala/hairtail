@@ -14,13 +14,39 @@ var (
 const (
 	EmphasisFormat string = "e"
 	StrongFormat   string = "s"
+	HyperLink string = "w"
 )
+
+type InlineFormatDescription struct {
+	Keyword string
+	NumEmbracedBlock int //number of EmbracedBlocks following the keyword
+}
 
 var (
-	gInlineFormatKeywordMap map[string]bool = make(map[string]bool)
+	gInlineFormatKeywordMap map[string]*InlineFormatDescription = make(map[string]*InlineFormatDescription)
+	gInlineFormatDescriptions = []*InlineFormatDescription {
+		&InlineFormatDescription{
+			Keyword: EmphasisFormat,
+			NumEmbracedBlock: 1,
+		},
+		&InlineFormatDescription{
+			Keyword: StrongFormat,
+			NumEmbracedBlock: 1,
+		},
+		&InlineFormatDescription{
+			Keyword: HyperLink,
+			NumEmbracedBlock: 2,
+		},
+	}
 )
 
+
+
+
+
+
 func init() {
-	gInlineFormatKeywordMap[EmphasisFormat] = true
-	gInlineFormatKeywordMap[StrongFormat] = true
+	for _, f := range gInlineFormatDescriptions {
+		gInlineFormatKeywordMap[f.Keyword] = f
+	}
 }
