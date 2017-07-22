@@ -2,6 +2,9 @@ the \e{keyword} is emphasized.
 
 i don't like \e{game}, remember?
 
-this is \s{stong} text 
+this is \s{stong} text. 
 
-this is \e{\s{nested}} 
+this is \e{\s{nested}} text. 
+
+go to \w{https://github.com/henryscala/hairtail}{hairtail} to get more details. 
+

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"text/template"
 )
 
@@ -115,19 +116,39 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 	case EmphasisFormat:
 		text, err = ChunkRender(keywordChunk.Children[0]) //only care one child
 		if err != nil {
+			log.Println(err)
 			return text, err
 		}
 		err = gEmphasisTemplate.Execute(&buf, text)
 		if err != nil {
+			log.Println(err)
 			return text, err
 		}
 	case StrongFormat:
 		text, err = ChunkRender(keywordChunk.Children[0]) //only care one child
 		if err != nil {
+			log.Println(err)
 			return text, err
 		}
 		err = gStrongTemplate.Execute(&buf, text)
 		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case HyperLink:
+		url, err := ChunkRender(keywordChunk.Children[0])
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+		content, err := ChunkRender(keywordChunk.Children[1])
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+		err = gHyperLinkTemplate.Execute(&buf, struct{ Url, Text string }{url, content})
+		if err != nil {
+			log.Println(err)
 			return text, err
 		}
 	default:

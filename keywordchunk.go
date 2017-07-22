@@ -69,6 +69,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				return outputChunks, err
 			}
 
+			log.Println("== handle token:", token[0].GetValue())
+
 			switch token[0].GetValue() {
 			case EmphasisFormat, StrongFormat:
 
@@ -88,10 +90,42 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				}
 				outputChunks = append(outputChunks, keywordChunk)
 				index = newIndex
+
+			case HyperLink:
+				log.Println("handle first embraced block", newIndex)
+				chunksUrl, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				chunksUrl, err = KeywordChunkHandle(chunksUrl) //recursive
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				log.Println("handle second embraced block", newIndex)
+				chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				chunksContent, err = KeywordChunkHandle(chunksContent) //recursive
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+
+				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+					Keyword:  token[0].GetValue(),
+					Children: []Chunk{chunksUrl[1], chunksContent[1]},
+				}
+				outputChunks = append(outputChunks, keywordChunk)
+				index = newIndex
+
 			default:
 				panic("not implemented")
 			}
-
+			continue
 		} else {
 
 			outputChunks = append(outputChunks, inputChunk)
@@ -104,12 +138,12 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	if index >= len(inputChunks) {
-		log.Println(errIndexOutOfBound)
+		log.Fatalln(errIndexOutOfBound)
 		return nil, index, errIndexOutOfBound
 	}
 	leftBraceChunk, ok := inputChunks[index].(*MetaCharChunk)
 	if !ok || leftBraceChunk.GetValue() != LeftBraceChar {
-		log.Println(errExpectLBrace)
+		log.Fatalln(errExpectLBrace)
 		return nil, index, errExpectLBrace
 	}
 
@@ -133,9 +167,9 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 	}
 	rightBraceChunk, ok := chunks[len(chunks)-1].(*MetaCharChunk)
 	if ok && rightBraceChunk.GetValue() == RightBraceChar {
-		return chunks, i, nil
+		return chunks, i + 1, nil
 	}
-	log.Println(errExpectRBrace)
+	log.Fatalln(errExpectRBrace)
 	return chunks, index, errExpectRBrace
 
 }
