@@ -12,6 +12,7 @@ var (
 	errIndexOutOfBound = errors.New("index out of bound")
 	errExpectLBrace    = errors.New("expect Left Brace")
 	errExpectRBrace    = errors.New("expect Right Brace")
+	errExpectPlainText = errors.New("expect Plain Text")
 )
 
 // KeywordChunk denotes meta char '\' followed by a token.
@@ -92,7 +93,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				index = newIndex
 
 			case HyperLink:
-				log.Println("handle first embraced block", newIndex)
+
 				chunksUrl, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
 				if err != nil {
 					log.Fatalln(err)
@@ -103,7 +104,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 					log.Fatalln(err)
 					return outputChunks, err
 				}
-				log.Println("handle second embraced block", newIndex)
+
 				chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
 				if err != nil {
 					log.Fatalln(err)
@@ -120,6 +121,53 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 					Children: []Chunk{chunksUrl[1], chunksContent[1]},
 				}
 				outputChunks = append(outputChunks, keywordChunk)
+				index = newIndex
+
+			case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
+				SectionHeader4, SectionHeader5, SectionHeader6:
+
+				header := token[0].GetValue()
+				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
+
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				if newIndex > len(inputChunks) {
+					log.Fatalln(errIndexOutOfBound)
+					return outputChunks, errIndexOutOfBound
+				}
+
+				plainTextChunk, ok := inputChunks[newIndex].(*PlainTextChunk)
+				newIndex++
+				if !ok {
+					log.Fatalln(errExpectPlainText)
+					return outputChunks, errExpectPlainText
+				}
+				firstLineChunk, restLineChunk, err := plainTextChunk.FirstLineRestLines()
+				if err != nil {
+					log.Fatalln(errExpectPlainText)
+					return outputChunks, errExpectPlainText
+				}
+				//update the plainTextChunk in-place
+				if restLineChunk == nil {
+					plainTextChunk.Value = ""
+				} else {
+					plainTextChunk.Value = restLineChunk.GetValue()
+					plainTextChunk.Position = restLineChunk.GetPosition()
+				}
+				level := gSectionLevel[header]
+
+				sectionChunk := &SectionChunk{Position: token[0].GetPosition(),
+					Level: level, Caption: firstLineChunk.GetValue(),
+					Id: tokenChunks[1].GetValue(),
+				}
+				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+					Keyword:  token[0].GetValue(),
+					Children: []Chunk{sectionChunk},
+				}
+				outputChunks = append(outputChunks, keywordChunk)
+				outputChunks = append(outputChunks, plainTextChunk)
 				index = newIndex
 
 			default:
@@ -176,7 +224,8 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 
 func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	chunks1, newIndex, err := consumeEmbracedBlock(inputChunks, index)
-	if len(chunks) != 3 {
+	if len(chunks1) != 3 {
+		log.Fatalln(errExpectToken)
 		return chunks, newIndex, errExpectToken
 	}
 
@@ -185,15 +234,17 @@ func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newInd
 		return nil, index, err
 	}
 
-	return []Chunk{chunks1[0], chunks2[1], chunks1[2]}, index + 3, nil
+	return []Chunk{chunks1[0], chunks2[0], chunks1[2]}, index + 3, nil
 }
 
 func consumeToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	if index >= len(inputChunks) {
+		log.Fatalln(errIndexOutOfBound)
 		return nil, index, errIndexOutOfBound
 	}
 	plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
 	if !ok {
+		log.Fatalln(errExpectToken)
 		return nil, index, errExpectToken
 	}
 	text := strings.Trim(plainTextChunk.GetValue(), BlankChars)
@@ -202,5 +253,6 @@ func consumeToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int,
 		plainTextChunk.Value = token
 		return []Chunk{plainTextChunk}, index + 1, nil
 	}
+	log.Fatalln(errExpectToken)
 	return nil, index, errExpectToken
 }

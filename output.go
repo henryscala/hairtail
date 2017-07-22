@@ -90,7 +90,11 @@ func ChunkRender(chunk Chunk) (string, error) {
 	case *EmbracedChunk:
 		embracedChunk := chunk.(*EmbracedChunk)
 		return ChunkListRender(embracedChunk.Children)
+	case *RawTextChunk:
+		rawTextChunk := chunk.(*RawTextChunk)
+		return rawTextChunk.GetValue(), nil
 	default:
+		log.Fatalln("not implemented")
 		panic("not implemented")
 	}
 }
@@ -147,6 +151,14 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			return text, err
 		}
 		err = gHyperLinkTemplate.Execute(&buf, struct{ Url, Text string }{url, content})
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
+		SectionHeader4, SectionHeader5, SectionHeader6:
+		sectionChunk := keywordChunk.Children[0].(*SectionChunk)
+		err = gSectionTemplate.Execute(&buf, sectionChunk)
 		if err != nil {
 			log.Println(err)
 			return text, err

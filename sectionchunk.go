@@ -64,8 +64,9 @@ func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			continue
 		}
-		sectionName := gSectionTokenPattern.FindString(keywordChunk.Keyword)
-		if len(sectionName) == 0 || sectionName != strings.Trim(keywordChunk.Keyword, BlankChars) {
+		sectionName := strings.Trim(keywordChunk.Keyword, BlankChars)
+		_, ok := gSectionLevel[sectionName]
+		if !ok {
 			outputChunks = append(outputChunks, inputChunk)
 
 			continue

@@ -27,6 +27,8 @@ func main() {
 		return
 	}
 
+	//TODO first render inline format(May combine plain text chunks), and then section format
+
 	outputContent, err := ChunkListRender(chunks)
 	if err != nil {
 		log.Println(err)
