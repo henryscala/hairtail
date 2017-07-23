@@ -73,8 +73,6 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				return outputChunks, err
 			}
 
-			log.Println("== handle token:", token[0].GetValue())
-
 			switch token[0].GetValue() {
 			case EmphasisFormat, StrongFormat:
 
@@ -270,15 +268,18 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 					log.Fatalln(err)
 					return outputChunks, err
 				}
+
 				chunksContent, err = KeywordChunkHandle(chunksContent)
 				if err != nil {
 					log.Fatalln(err)
 					return outputChunks, err
 				}
+
 				listChunk := &ListChunk{Position: token[0].GetPosition(),
 					Id:       tokenChunks[1].GetValue(),
 					ListType: token[0].GetValue(),
 				}
+
 				items, _, err := consumeListItems(chunksContent[1:len(chunksContent)-1], 0)
 				if err != nil {
 					log.Fatalln(err)
@@ -307,7 +308,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {
 	ignoreBlank := func() {
-		log.Println("ignoreBlank begin index:", index)
+
 		for index < len(inputChunks) {
 			plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
 			if ok && len(strings.Trim(plainTextChunk.Value, BlankChars)) == 0 {
@@ -320,7 +321,6 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 	}
 
 	ignoreBlank()
-	log.Println("ignoreBlank end index:", index)
 
 	if index >= len(inputChunks) {
 		return nil, index, errIndexOutOfBound
@@ -366,9 +366,8 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 	}
 
 	item = &ListItem{}
-	log.Println("findNextListItem begin index:", index+1)
+
 	newIndex, option := findNextListItem(index + 1)
-	log.Println("findNextListItem end index:", newIndex, option)
 
 	switch option {
 	case ListEnd, ListItemFound:
@@ -381,11 +380,12 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 
 func consumeListItems(inputChunks []Chunk, index int) (items []*ListItem, newIndex int, err error) {
 	for index < len(inputChunks) {
-		log.Println("=======inputChunks", inputChunks, "index", index)
 
 		item, newIndex, err := consumeListItem(inputChunks, index)
 		if err != nil {
+			debug.PrintStack()
 			log.Fatalln(err)
+			return items, newIndex, err
 		}
 		items = append(items, item)
 		index = newIndex
@@ -434,6 +434,9 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	chunks1, newIndex, err := consumeEmbracedBlock(inputChunks, index)
 	if len(chunks1) != 3 {
+		fmt.Println("===== inputChunks", inputChunks)
+		fmt.Println("===== chunks1", chunks1)
+		debug.PrintStack()
 		log.Fatalln(errExpectToken)
 		return chunks, newIndex, errExpectToken
 	}
