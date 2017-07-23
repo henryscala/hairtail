@@ -87,18 +87,26 @@ func ParseChunks(input string) ([]Chunk, error) {
 	)
 	chunks, err = RawTextChunkHandle(input)
 	if err != nil {
+		log.Fatalln(err)
 		return chunks, err
 	}
 	chunks, err = MetaChunkHandle(chunks)
 	if err != nil {
+		log.Fatalln(err)
 		return chunks, err
 	}
-	log.Println("-------\nafter MetaChunkHandle:", chunks)
+
 	chunks, err = KeywordChunkHandle(chunks)
 	if err != nil {
+		log.Fatalln(err)
 		return chunks, err
 	}
-	log.Println("-------\nafter KeywordChunkHandle:", chunks)
+	chunks, err = InlineChunkListRender(chunks)
+	if err != nil {
+		log.Fatalln(err)
+		return chunks, err
+	}
+	log.Println("-------\nafter InlineChunkListRender:", chunks)
 
 	/*
 			chunks, err = EmbracedChunkHandle(chunks)

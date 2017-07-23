@@ -13,7 +13,9 @@ const (
 	EmphasisFormat string = "e"
 	StrongFormat   string = "s"
 	HyperLink      string = "w"
+	InlineCode     string = "c"
 
+	BlockCode      string = "code"
 	SectionHeader  string = "h"
 	SectionHeader1 string = "h1"
 	SectionHeader2 string = "h2"
@@ -24,10 +26,16 @@ const (
 )
 
 var (
+	gInlineFormatMap  = make(map[string]bool)
+	gInlineFormatList = []string{
+		EmphasisFormat, StrongFormat, HyperLink,
+	}
 	gSectionLevel = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
 		SectionHeader3: 3, SectionHeader4: 4, SectionHeader5: 5, SectionHeader6: 6}
 )
 
 func init() {
-
+	for _, f := range gInlineFormatList {
+		gInlineFormatMap[f] = true
+	}
 }

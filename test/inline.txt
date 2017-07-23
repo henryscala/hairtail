@@ -8,3 +8,7 @@ this is \e{\s{nested}} text.
 
 go to \w{https://github.com/henryscala/hairtail}{hairtail} to get more details. 
 
+this is code \c{1+1=2}. This is also code \c\r##{ puts {bla bla} }##
+
+
+

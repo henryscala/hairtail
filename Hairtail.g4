@@ -16,7 +16,7 @@ HYPER_LINK : '\\w' ;
 
 ANCHOR : '\\a' ; 
 
-INDEX : '\\I' ; 
+INDEX : '\\i' ; 
 
 IMAGE : '\\image' ; 
 
@@ -60,6 +60,8 @@ STRING : .+? ;
 
 COMMENT : '\\#' ; 
 
+CAPTION : '\\caption'
+
 doc : (paragraphs | blocks) sections ;  
 
 line : (inline_block | string)+ (LINE_END | EOF) ; 
@@ -96,7 +98,7 @@ inline_comment_block : COMMENT (LBRACE string RBRACE) ;
 
 hyper_link_block :  HYPER_LINK (LBRACE string RBRACE) (LBRACE string RBRACE) ; 
 
-image_block :  IMAGE embraced_id (LBRACE string RBRACE) (LBRACE string RBRACE) ; //id, url, caption 
+image_block :  IMAGE embraced_id (LBRACE string RBRACE) ; //id, url 
 
 embraced_raw_content : (LBRACE string RBRACE) | (FILLER embraced_raw_content FILLER) ;
  
@@ -112,7 +114,10 @@ inline_block : emphasis_block
              | inline_comment
 			| anchor_block 
 			| index_block 
+			
              ; 
+
+caption : CAPTAIN embraced_id (LBRACE string RBRACE) ; //it is to add caption to blocks(non-inline) that has no caption, e.g. list, table, code-block, the id here is the id of the block to add caption to 
 
 list_block : bullet_list_block | order_list_block ; 
 

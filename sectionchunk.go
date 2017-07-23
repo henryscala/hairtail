@@ -1,10 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 // SectionChunk denotes Sections in article. It is nested structure.
@@ -49,75 +46,11 @@ func (p *SectionChunk) GetValue() string {
 func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 	var (
 		outputChunks []Chunk
-		err          error
+
 		sectionExist bool
 	)
 
 	//first pass, the SectionChunk has no children
-	for i := 0; i < len(inputChunks); i++ {
-
-		inputChunk := inputChunks[i]
-
-		keywordChunk, isKeywordChunk := inputChunk.(*KeywordChunk)
-		if !isKeywordChunk {
-			outputChunks = append(outputChunks, inputChunk)
-
-			continue
-		}
-		sectionName := strings.Trim(keywordChunk.Keyword, BlankChars)
-		_, ok := gSectionLevel[sectionName]
-		if !ok {
-			outputChunks = append(outputChunks, inputChunk)
-
-			continue
-		}
-		//from here, it is sure that the chunk is section chunk
-
-		level := 1
-		if len(sectionName) > 1 {
-			level, err = strconv.Atoi(sectionName[1:2]) //only one digit is supported
-			if err != nil {
-				return outputChunks, err
-			}
-		}
-
-		if i+2 >= len(inputChunks) {
-			return outputChunks, errors.New("section chunk does not follow a ID chunk and a caption chunk")
-		}
-		nextChunk := inputChunks[i+1]
-		nextNextChunk := inputChunks[i+2]
-		embracedChunk, isEmbracedChunk := nextChunk.(*EmbracedChunk)
-		if !isEmbracedChunk {
-			return outputChunks, errors.New("section chunk shall contain an Embraced chunnk that stands for ID of the section")
-		}
-
-		if !embracedChunk.IsTerminal() {
-			return outputChunks, errors.New("ID chunk shall be terminal not nested")
-
-		}
-		id := embracedChunk.GetValue()
-		plainTextChunk, isPlainTextChunk := nextNextChunk.(*PlainTextChunk)
-		if !isPlainTextChunk {
-			return outputChunks, errors.New("captain chunk must be contained in PlainTextChunk")
-		}
-		firstLine, restLines, err := plainTextChunk.FirstLineRestLines()
-		if err != nil {
-			return outputChunks, err
-		}
-
-		sectionChunk := &SectionChunk{Position: keywordChunk.GetPosition(),
-			Level:   level,
-			Id:      id,
-			Caption: firstLine.GetValue(),
-		}
-		outputChunks = append(outputChunks, sectionChunk)
-		if restLines != nil {
-			outputChunks = append(outputChunks, restLines)
-		}
-		sectionExist = true
-		i += 2 // jump 2 chunks
-
-	}
 
 	if !sectionExist {
 		return outputChunks, nil

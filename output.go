@@ -9,19 +9,23 @@ import (
 type OutputRenderFunc func(chunk Chunk) (string, error)
 
 var (
-	gSectionTemplate   *template.Template
-	gParagraphTemplate *template.Template
-	gEmphasisTemplate  *template.Template
-	gStrongTemplate    *template.Template
-	gHyperLinkTemplate *template.Template
+	gSectionTemplate    *template.Template
+	gParagraphTemplate  *template.Template
+	gEmphasisTemplate   *template.Template
+	gStrongTemplate     *template.Template
+	gHyperLinkTemplate  *template.Template
+	gInlineCodeTemplate *template.Template
+	gBlockCodeTemplate  *template.Template
 )
 
 func init() {
-	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} name="{{.Id}}">{{.Caption}}</h{{.Level}}>`)
+	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} id="{{.Id}}">{{.Caption}}</h{{.Level}}>`)
 	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>`)
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
+	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
+	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><pre>{{.Value}}</pre>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -56,21 +60,18 @@ func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
 
 		curr = chunkList[i]
 
-		if _, isInlineChunk := curr.(*InlineChunk); isInlineChunk {
-			str, err := InlineChunkRender(curr)
-			if err != nil {
-				return outputChunks, err
-			}
-			pushToOutputChunks(&PlainTextChunk{Position: curr.GetPosition(), Value: str})
-			continue
-		}
-		if embracedChunk, isEmbracedChunk := curr.(*EmbracedChunk); isEmbracedChunk {
-			var err error
-			embracedChunk.Children, err = InlineChunkListRender(embracedChunk.Children) //recursive call
-			if err != nil {
-				return outputChunks, err
+		if keyword, isKeyword := curr.(*KeywordChunk); isKeyword {
+			if gInlineFormatMap[keyword.Keyword] {
+				str, err := KeywordChunkRender(curr)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				pushToOutputChunks(&PlainTextChunk{Position: curr.GetPosition(), Value: str})
+				continue
 			}
 		}
+
 		pushToOutputChunks(curr)
 
 	}
@@ -85,11 +86,6 @@ func ChunkRender(chunk Chunk) (string, error) {
 		return PlainTextChunkRender(chunk)
 	case *SectionChunk:
 		return SectionChunkRender(chunk)
-	case *InlineChunk:
-		return InlineChunkRender(chunk)
-	case *EmbracedChunk:
-		embracedChunk := chunk.(*EmbracedChunk)
-		return ChunkListRender(embracedChunk.Children)
 	case *RawTextChunk:
 		rawTextChunk := chunk.(*RawTextChunk)
 		return rawTextChunk.GetValue(), nil
@@ -155,6 +151,24 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case InlineCode:
+		text, err = ChunkRender(keywordChunk.Children[0])
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+		err = gInlineCodeTemplate.Execute(&buf, text)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case BlockCode:
+		blockCodeChunk := keywordChunk.Children[0].(*BlockCodeChunk)
+		err = gBlockCodeTemplate.Execute(&buf, blockCodeChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
 	case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 		SectionHeader4, SectionHeader5, SectionHeader6:
 		sectionChunk := keywordChunk.Children[0].(*SectionChunk)
@@ -165,42 +179,6 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 		}
 	default:
 		panic("not implemented")
-	}
-	return buf.String(), nil
-}
-
-func InlineChunkRender(chunk Chunk) (string, error) {
-	inlineChunk := chunk.(*InlineChunk)
-
-	var err error
-	var text string
-	var buf bytes.Buffer
-
-	switch inlineChunk.Keyword {
-	case EmphasisFormat:
-		text, err = ChunkRender(inlineChunk.Children[0]) //only care one child
-		if err != nil {
-			return text, err
-		}
-
-		err = gEmphasisTemplate.Execute(&buf, text)
-	case StrongFormat:
-		text, err = ChunkRender(inlineChunk.Children[0]) //only care one child
-		if err != nil {
-			return text, err
-		}
-
-		err = gStrongTemplate.Execute(&buf, text)
-	case HyperLink:
-		text1 := inlineChunk.Children[0].(*EmbracedChunk).Children[0].GetValue()
-		text2 := inlineChunk.Children[1].(*EmbracedChunk).Children[0].GetValue()
-
-		err = gHyperLinkTemplate.Execute(&buf, struct{ Url, Text string }{text1, text2})
-	default:
-		panic("not implemented")
-	}
-	if err != nil {
-		return text, err
 	}
 	return buf.String(), nil
 }

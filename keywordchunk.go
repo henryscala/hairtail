@@ -13,6 +13,7 @@ var (
 	errExpectLBrace    = errors.New("expect Left Brace")
 	errExpectRBrace    = errors.New("expect Right Brace")
 	errExpectPlainText = errors.New("expect Plain Text")
+	errExpectRawText   = errors.New("expect Raw Text")
 )
 
 // KeywordChunk denotes meta char '\' followed by a token.
@@ -122,7 +123,86 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				}
 				outputChunks = append(outputChunks, keywordChunk)
 				index = newIndex
+			case InlineCode:
+				chunks, newIndex1, err := consumeEmbracedBlock(inputChunks, newIndex)
+				if err == nil {
 
+					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+						Keyword:  token[0].GetValue(),
+						Children: []Chunk{chunks[1]},
+					}
+					outputChunks = append(outputChunks, keywordChunk)
+					newIndex = newIndex1
+					index = newIndex
+				} else {
+					//InlineCode content may be either EmbracedBlock or RawTextBlock
+					if newIndex >= len(inputChunks) {
+						log.Fatalln(errIndexOutOfBound)
+						return outputChunks, errIndexOutOfBound
+					}
+					rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
+					if !ok {
+						log.Fatalln(errExpectRawText)
+						return outputChunks, errExpectRawText
+					}
+
+					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+						Keyword:  token[0].GetValue(),
+						Children: []Chunk{rawTextChunk},
+					}
+
+					outputChunks = append(outputChunks, keywordChunk)
+					newIndex++
+					index = newIndex
+				}
+			case BlockCode:
+
+				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
+
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				chunksContent, newIndex1, err := consumeEmbracedBlock(inputChunks, newIndex)
+				if err == nil {
+					blockCodeChunk := &BlockCodeChunk{
+						Position: token[0].GetPosition(),
+						Id:       tokenChunks[1].GetValue(),
+						Value:    chunksContent[1].GetValue(),
+					}
+					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+						Keyword:  token[0].GetValue(),
+						Children: []Chunk{blockCodeChunk},
+					}
+
+					outputChunks = append(outputChunks, keywordChunk)
+					index = newIndex1
+				} else {
+					//BlockCode content may be either EmbracedBlock or RawTextBlock
+					if newIndex >= len(inputChunks) {
+						log.Fatalln(errIndexOutOfBound)
+						return outputChunks, errIndexOutOfBound
+					}
+					rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
+					if !ok {
+						log.Fatalln(errExpectRawText)
+						return outputChunks, errExpectRawText
+					}
+
+					blockCodeChunk := &BlockCodeChunk{
+						Position: token[0].GetPosition(),
+						Id:       tokenChunks[1].GetValue(),
+						Value:    rawTextChunk.GetValue(),
+					}
+					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+						Keyword:  token[0].GetValue(),
+						Children: []Chunk{blockCodeChunk},
+					}
+
+					outputChunks = append(outputChunks, keywordChunk)
+					newIndex++
+					index = newIndex
+				}
 			case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 				SectionHeader4, SectionHeader5, SectionHeader6:
 
@@ -186,12 +266,12 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	if index >= len(inputChunks) {
-		log.Fatalln(errIndexOutOfBound)
+		log.Println(errIndexOutOfBound)
 		return nil, index, errIndexOutOfBound
 	}
 	leftBraceChunk, ok := inputChunks[index].(*MetaCharChunk)
 	if !ok || leftBraceChunk.GetValue() != LeftBraceChar {
-		log.Fatalln(errExpectLBrace)
+		log.Println(errExpectLBrace)
 		return nil, index, errExpectLBrace
 	}
 
@@ -217,7 +297,7 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 	if ok && rightBraceChunk.GetValue() == RightBraceChar {
 		return chunks, i + 1, nil
 	}
-	log.Fatalln(errExpectRBrace)
+	log.Println(errExpectRBrace)
 	return chunks, index, errExpectRBrace
 
 }
