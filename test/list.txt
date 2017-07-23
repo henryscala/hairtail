@@ -9,5 +9,22 @@ below is a ordered list.
 below is a bullet list. 
 
 \ul{first-ul}{ 
-	
+	\- asia 
+	\- europe 
+	\- america 
+	\- africa 
+}
+
+below is a nested list. 
+
+\ul{first-nest}{
+	\- american \ul {
+		\- new york
+		\- washington 
+	}
+	\- china \ol{ignore} {
+		\- chengdu 
+		\- beijing 
+	}
+	\- english 
 }

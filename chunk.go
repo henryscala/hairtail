@@ -95,6 +95,7 @@ func ParseChunks(input string) ([]Chunk, error) {
 		log.Fatalln(err)
 		return chunks, err
 	}
+	log.Println("-------\nafter MetaChunkHandle:", chunks)
 
 	chunks, err = KeywordChunkHandle(chunks)
 	if err != nil {

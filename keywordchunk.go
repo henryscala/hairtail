@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 )
 
@@ -305,6 +306,26 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 }
 
 func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {
+	ignoreBlank := func() {
+		log.Println("ignoreBlank begin index:", index)
+		for index < len(inputChunks) {
+			plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
+			if ok && len(strings.Trim(plainTextChunk.Value, BlankChars)) == 0 {
+				index++
+			} else {
+				return
+			}
+		}
+
+	}
+
+	ignoreBlank()
+	log.Println("ignoreBlank end index:", index)
+
+	if index >= len(inputChunks) {
+		return nil, index, errIndexOutOfBound
+	}
+
 	listItemChunk, ok := inputChunks[index].(*KeywordChunk)
 	if !ok || listItemChunk.Keyword != ListItemMark {
 		return nil, index, errExpectListItem
@@ -321,7 +342,7 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 		var i int
 
 		for i = idx; i < len(inputChunks); i++ {
-			chunk, ok := inputChunks[index].(*KeywordChunk)
+			chunk, ok := inputChunks[i].(*KeywordChunk)
 			if ok {
 				if chunk.Keyword == ListItemMark {
 					return i, ListItemFound
@@ -345,7 +366,9 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 	}
 
 	item = &ListItem{}
+	log.Println("findNextListItem begin index:", index+1)
 	newIndex, option := findNextListItem(index + 1)
+	log.Println("findNextListItem end index:", newIndex, option)
 
 	switch option {
 	case ListEnd, ListItemFound:
@@ -358,6 +381,8 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 
 func consumeListItems(inputChunks []Chunk, index int) (items []*ListItem, newIndex int, err error) {
 	for index < len(inputChunks) {
+		log.Println("=======inputChunks", inputChunks, "index", index)
+
 		item, newIndex, err := consumeListItem(inputChunks, index)
 		if err != nil {
 			log.Fatalln(err)
@@ -415,6 +440,7 @@ func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newInd
 
 	chunks2, _, err := consumeToken(inputChunks, index+1)
 	if err != nil {
+		log.Fatalln(err)
 		return nil, index, err
 	}
 
@@ -431,12 +457,25 @@ func consumeToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int,
 		log.Fatalln(errExpectToken)
 		return nil, index, errExpectToken
 	}
-	text := strings.Trim(plainTextChunk.GetValue(), BlankChars)
+
+	text := strings.TrimLeft(plainTextChunk.GetValue(), BlankChars)
+	delta := len(plainTextChunk.GetValue()) - len(text)
 	token := gTokenPattern.FindString(text)
-	if token == text && len(token) > 0 {
-		plainTextChunk.Value = token
-		return []Chunk{plainTextChunk}, index + 1, nil
+	if strings.HasPrefix(text, token) && len(token) > 0 {
+		newPlainText := &PlainTextChunk{}
+		newPlainText.Position = plainTextChunk.GetPosition()
+		newPlainText.Value = token
+
+		plainTextChunk.SetPosition(plainTextChunk.GetPosition() + delta + len(token))
+		plainTextChunk.Value = plainTextChunk.Value[delta+len(token):]
+		if len(strings.Trim(plainTextChunk.Value, BlankChars)) == 0 {
+			newIndex = index + 1
+		} else {
+			newIndex = index //the index does not change because we splitted the plainTextChunk
+		}
+		return []Chunk{newPlainText}, newIndex, nil
 	}
+	debug.PrintStack()
 	log.Fatalln(errExpectToken)
 	return nil, index, errExpectToken
 }
