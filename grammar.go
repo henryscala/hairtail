@@ -23,6 +23,10 @@ const (
 	SectionHeader4 string = "h4"
 	SectionHeader5 string = "h5"
 	SectionHeader6 string = "h6"
+
+	OrderList    string = "ol"
+	BulletList   string = "ul"
+	ListItemMark string = "-"
 )
 
 var (

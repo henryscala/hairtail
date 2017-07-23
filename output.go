@@ -16,6 +16,8 @@ var (
 	gHyperLinkTemplate  *template.Template
 	gInlineCodeTemplate *template.Template
 	gBlockCodeTemplate  *template.Template
+	gListTemplate       *template.Template
+	gListItemTemplate   *template.Template
 )
 
 func init() {
@@ -26,6 +28,8 @@ func init() {
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
 	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><pre>{{.Value}}</pre>`)
+	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>`)
+	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -173,6 +177,25 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 		SectionHeader4, SectionHeader5, SectionHeader6:
 		sectionChunk := keywordChunk.Children[0].(*SectionChunk)
 		err = gSectionTemplate.Execute(&buf, sectionChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case OrderList, BulletList:
+		listChunk := keywordChunk.Children[0].(*ListChunk)
+		var tmpBuf bytes.Buffer
+		for _, item := range listChunk.Items {
+			itemText, err := ChunkListRender(item.Value)
+			if err != nil {
+				return text, err
+			}
+			err = gListItemTemplate.Execute(&tmpBuf, itemText)
+			if err != nil {
+				log.Fatalln(err)
+				return text, err
+			}
+		}
+		err = gListTemplate.Execute(&buf, struct{ Id, Caption, ListType, Value string }{listChunk.Id, listChunk.Caption, listChunk.ListType, tmpBuf.String()})
 		if err != nil {
 			log.Println(err)
 			return text, err

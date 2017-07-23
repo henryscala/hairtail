@@ -14,6 +14,7 @@ var (
 	errExpectRBrace    = errors.New("expect Right Brace")
 	errExpectPlainText = errors.New("expect Plain Text")
 	errExpectRawText   = errors.New("expect Raw Text")
+	errExpectListItem  = errors.New("expect List Item ")
 )
 
 // KeywordChunk denotes meta char '\' followed by a token.
@@ -155,6 +156,14 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 					newIndex++
 					index = newIndex
 				}
+			case ListItemMark:
+				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+					Keyword: token[0].GetValue(),
+				}
+				outputChunks = append(outputChunks, keywordChunk)
+
+				index = newIndex
+
 			case BlockCode:
 
 				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
@@ -249,7 +258,38 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks = append(outputChunks, keywordChunk)
 				outputChunks = append(outputChunks, plainTextChunk)
 				index = newIndex
-
+			case OrderList, BulletList:
+				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				chunksContent, err = KeywordChunkHandle(chunksContent)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				listChunk := &ListChunk{Position: token[0].GetPosition(),
+					Id:       tokenChunks[1].GetValue(),
+					ListType: token[0].GetValue(),
+				}
+				items, _, err := consumeListItems(chunksContent[1:len(chunksContent)-1], 0)
+				if err != nil {
+					log.Fatalln(err)
+					return outputChunks, err
+				}
+				listChunk.Items = items
+				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
+					Keyword:  token[0].GetValue(),
+					Children: []Chunk{listChunk},
+				}
+				outputChunks = append(outputChunks, keywordChunk)
+				index = newIndex
 			default:
 				panic("not implemented")
 			}
@@ -262,6 +302,70 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 	}
 
 	return outputChunks, nil
+}
+
+func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {
+	listItemChunk, ok := inputChunks[index].(*KeywordChunk)
+	if !ok || listItemChunk.Keyword != ListItemMark {
+		return nil, index, errExpectListItem
+	}
+
+	const (
+		ListEnd int = iota
+		ListItemFound
+		OrderListFound
+		BulletListFound
+	)
+
+	findNextListItem := func(idx int) (int, int) {
+		var i int
+
+		for i = idx; i < len(inputChunks); i++ {
+			chunk, ok := inputChunks[index].(*KeywordChunk)
+			if ok {
+				if chunk.Keyword == ListItemMark {
+					return i, ListItemFound
+				}
+
+				if chunk.Keyword == OrderList {
+					return i, OrderListFound
+				}
+
+				if chunk.Keyword == BulletList {
+					return i, BulletListFound
+				}
+
+			}
+		}
+		return i, ListEnd
+	}
+
+	if index+1 >= len(inputChunks) {
+		return nil, index, errIndexOutOfBound
+	}
+
+	item = &ListItem{}
+	newIndex, option := findNextListItem(index + 1)
+
+	switch option {
+	case ListEnd, ListItemFound:
+		item.Value = append(item.Value, inputChunks[index+1:newIndex]...) //no difference for now
+	case OrderListFound, BulletListFound:
+		item.Value = append(item.Value, inputChunks[index+1:newIndex]...) //no difference for now
+	}
+	return item, newIndex, nil
+}
+
+func consumeListItems(inputChunks []Chunk, index int) (items []*ListItem, newIndex int, err error) {
+	for index < len(inputChunks) {
+		item, newIndex, err := consumeListItem(inputChunks, index)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		items = append(items, item)
+		index = newIndex
+	}
+	return
 }
 
 func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {

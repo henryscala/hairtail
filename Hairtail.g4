@@ -88,7 +88,7 @@ emphasis_block :  EMPHASIS embraced_block ;
 
 strong_block :  STRONG embraced_block ; 
 
-refer_to_block : REFER_TO (LBRACE ID RBRACE) (LBRACE string RBRACE); 
+refer_to_block : REFER_TO (LBRACE ID RBRACE) ; 
 
 anchor_block : ANCHOR (LBRACE ID RBRACE) (LBRACE string RBRACE) ; 
 
