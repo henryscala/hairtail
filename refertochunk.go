@@ -11,10 +11,6 @@ type ReferToChunk struct {
 	Value    string //if required, the value is get from the referred to chunk
 }
 
-func (p ReferToChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p ReferToChunk) String() string {
 	return fmt.Sprintf("ReferToChunk{Position: %d, Id: %v, Value: %v }",

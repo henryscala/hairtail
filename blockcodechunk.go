@@ -12,10 +12,6 @@ type BlockCodeChunk struct {
 	Value    string
 }
 
-func (p BlockCodeChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p BlockCodeChunk) String() string {
 	return fmt.Sprintf("BlockCodeChunk{Position: %d, Id: %v, Caption: %v, Value: %v}",

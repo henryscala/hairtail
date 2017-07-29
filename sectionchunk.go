@@ -13,10 +13,6 @@ type SectionChunk struct {
 	Children []Chunk
 }
 
-func (p SectionChunk) IsTerminal() bool {
-	return len(p.Children) == 0
-}
-
 // String implements the Stringer interface
 func (p SectionChunk) String() string {
 	return fmt.Sprintf("SectionChunk{Position: %d, Level: %d, Id: %v, Caption: %v, Children: %v}",
@@ -35,11 +31,9 @@ func (p *SectionChunk) SetPosition(pos int) {
 
 // GetValue implements the Chunk interface
 func (p *SectionChunk) GetValue() string {
-	if p.IsTerminal() {
-		return p.Caption
-	}
-	panic("should not directly use")
-	return "not implemented"
+
+	return p.Caption
+
 }
 
 // SectionChunkHandle

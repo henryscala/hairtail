@@ -11,10 +11,6 @@ type AnchorChunk struct {
 	Value    string
 }
 
-func (p AnchorChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p AnchorChunk) String() string {
 	return fmt.Sprintf("AnchorChunk{Position: %d, Id: %v, Value: %v }",

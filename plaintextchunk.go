@@ -28,11 +28,6 @@ func (p *PlainTextChunk) GetValue() string {
 	return p.Value
 }
 
-// GetValue implements the Chunk interface
-func (p *PlainTextChunk) IsTerminal() bool {
-	return true
-}
-
 // Divide the chunk to two paragraphs separated by two \n or \r\n
 func (p *PlainTextChunk) ToParagraphList() (paragraphList []string) {
 	list := gParagraphDivider.Split(p.GetValue(), math.MaxInt64)

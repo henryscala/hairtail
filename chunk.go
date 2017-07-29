@@ -43,7 +43,6 @@ type Chunk interface {
 	GetPosition() int
 	GetValue() string
 	SetPosition(pos int)
-	IsTerminal() bool //return true if it has no children
 }
 
 // MetaCharChunk denotes the trunk of length 1, and the content is meta char.

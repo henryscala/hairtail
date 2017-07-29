@@ -8,10 +8,6 @@ type ListItem struct {
 	Value []Chunk //may contain inline chunks
 }
 
-func (item ListItem) IsTerminal() bool {
-	return true
-}
-
 // ListChunk denotes a order/bullet list
 type ListChunk struct {
 	Position int
@@ -19,10 +15,6 @@ type ListChunk struct {
 	Id       string
 	Caption  string //optional
 	Items    []*ListItem
-}
-
-func (p ListChunk) IsTerminal() bool {
-	return true
 }
 
 // String implements the Stringer interface

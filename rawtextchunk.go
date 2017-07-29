@@ -27,11 +27,6 @@ func (p *RawTextChunk) GetValue() string {
 	return p.Value
 }
 
-// GetValue implements the Chunk interface
-func (p *RawTextChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p RawTextChunk) String() string {
 	return fmt.Sprintf("RawTextChunk{Position:%v,Value:'%v'}", p.Position, p.Value)
