@@ -76,6 +76,24 @@ embraced_id : LBRACE WS* ID WS* RBRACE ;
 
 embraced_block : LBRACE block RBRACE ; 
 
+title : '\\title' string LINE_END ;
+
+sub_title : '\\sub-title' string LINE_END ;
+
+chapter_index : '\\toc' ;
+
+figure_index : '\\figure-index' ;
+
+table_index : '\\table-index' ;
+
+list_index : '\\list-index' ; 
+
+create_date :'\\create-date' string LINE_END ;
+
+modify_date :'\\modify-date' string LINE_END ;
+
+keywords :'\\keywords' string (',' string)* LINE_END ; 
+
 section_header :  SECTION_MARK SECTION_LEVEL? (LBRACE ID RBRACE) string LINE_END ; 
 
 blocks : block* ; 

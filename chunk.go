@@ -67,11 +67,6 @@ func (p *MetaCharChunk) GetValue() string {
 	return p.Value
 }
 
-// GetValue implements the Chunk interface
-func (p *MetaCharChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p MetaCharChunk) String() string {
 	return fmt.Sprintf("MetaCharChunk{Position:%v,Value:'%v'}", p.Position, p.Value)

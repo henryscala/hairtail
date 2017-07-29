@@ -26,10 +26,6 @@ type KeywordChunk struct {
 	Children []Chunk
 }
 
-func (p KeywordChunk) IsTerminal() bool {
-	return true
-}
-
 // String implements the Stringer interface
 func (p KeywordChunk) String() string {
 	return fmt.Sprintf("keywordChunk{Position:%v,Keyword:'%v',Children:%v}", p.Position, p.Keyword, p.Children)
