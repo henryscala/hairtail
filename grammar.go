@@ -32,6 +32,9 @@ const (
 	BulletList   string = "ul"
 	ListItemMark string = "-"
 
+	TableKeyword              = "table"
+	TableCellDelimiterKeyword = "d"
+
 	//meta
 	TitleKeyword      = "title"
 	SubTitleKeyword   = "sub-title"

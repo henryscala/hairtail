@@ -23,11 +23,11 @@ func Compile(inputFile, outputFile string) error {
 		log.Println(err)
 		return err
 	}
-	log.Println("###########################################")
-	log.Println("rendering", inputFile)
-	log.Println("###########################################")
-	log.Println("intermediate result is :")
-	log.Println(chunks)
+	//	log.Println("###########################################")
+	//	log.Println("rendering", inputFile)
+	//	log.Println("###########################################")
+	//	log.Println("intermediate result is :")
+	//	log.Println(chunks)
 	gInlineRenderMode = false
 	outputContent, err := ChunkListRender(chunks)
 	if err != nil {

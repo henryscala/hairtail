@@ -1,0 +1,7 @@
+\table{table-id}{ 
+	name \d score
+	henry \d 100
+	 
+	dily \d 99 
+	ruby \d 98 
+}

@@ -149,7 +149,7 @@ bullet_list_block :  BULLET_LIST embraced_id LBRACE list_item+ RBRACE ;
 
 order_list_block :  ORDER_LIST embraced_id LBRACE list_item+ RBRACE ;
 
-table_row : string ( CELL_DELIM string)* ; //ESC separated values 
+table_row : string ( CELL_DELIM string)* ; 
 
 table_block :  TABLE embraced_id LBRACE table_row (LINE_END table_row)* RBRACE ; 
 

@@ -79,7 +79,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-			case ListItemMark, ChapterIndexKeyword, FigureIndexKeyword, TableIndexKeyword, ListIndexKeyword, CodeIndexKeyword:
+			case TableCellDelimiterKeyword, ListItemMark, ChapterIndexKeyword, FigureIndexKeyword, TableIndexKeyword, ListIndexKeyword, CodeIndexKeyword:
 				outputChunks, index, err = simpleKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case AnchorBlock:
 				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)
@@ -96,7 +96,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			case OrderList, BulletList:
 				outputChunks, index, err = listBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-
+			case TableKeyword:
+				outputChunks, index, err = tableBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			default:
 				log.Fatal("not implemented")
 				panic("not implemented")
@@ -116,7 +117,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 }
 
 func referToBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
-	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -139,7 +140,7 @@ func referToBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index in
 }
 
 func anchorBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
-	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -272,7 +273,7 @@ func inlineCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index
 }
 
 func blockCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
-	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -354,7 +355,7 @@ func metaKeywordHandle(token Chunk, inputChunks, outputChunks []Chunk, index int
 
 func sectionBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
 	header := token.GetValue()
-	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -399,7 +400,7 @@ func sectionBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index in
 }
 
 func listBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
-	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
 	if err != nil {
 		log.Fatalln(err)
 		return outputChunks, index, err
@@ -432,6 +433,39 @@ func listBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) 
 		Children: []Chunk{listChunk},
 	}
 	outputChunks = append(outputChunks, keywordChunk)
+	return outputChunks, newIndex, nil
+}
+
+func tableBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	chunksContent, err = KeywordChunkHandle(chunksContent)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	tableChunk := &TableChunk{
+		Position: token.GetPosition(),
+		Id:       tokenChunks[1].GetValue(),
+	}
+	log.Println("##########", chunksContent)
+	tableChunk.Cells = append(tableChunk.Cells, chunksContent)
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{tableChunk},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+
 	return outputChunks, newIndex, nil
 }
 
@@ -548,7 +582,7 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 	}
 	leftBraceChunk, ok := inputChunks[index].(*MetaCharChunk)
 	if !ok || leftBraceChunk.GetValue() != LeftBraceChar {
-
+		log.Println(errExpectLBrace)
 		return nil, index, errExpectLBrace
 	}
 
@@ -579,7 +613,7 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 
 }
 
-func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
+func consumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	chunks1, newIndex, err := consumeEmbracedBlock(inputChunks, index)
 	if len(chunks1) < 3 { //there might be empty plain-text here, so the len may be > 3
 

@@ -15,6 +15,7 @@ func TestParseChunks(t *testing.T) {
 		"list.txt",
 		"nestlist.txt",
 		"section.txt",
+		"table.txt",
 	}
 
 	for _, file := range inputFiles {
