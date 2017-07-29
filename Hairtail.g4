@@ -80,6 +80,8 @@ title : '\\title' string LINE_END ;
 
 sub_title : '\\sub-title' string LINE_END ;
 
+author : '\\author' string LINE_END ; 
+
 chapter_index : '\\toc' ;
 
 figure_index : '\\figure-index' ;
@@ -87,6 +89,8 @@ figure_index : '\\figure-index' ;
 table_index : '\\table-index' ;
 
 list_index : '\\list-index' ; 
+
+code_index : '\\code-index' ; 
 
 create_date :'\\create-date' string LINE_END ;
 

@@ -23,12 +23,13 @@ var (
 type KeywordChunk struct {
 	Position int
 	Keyword  string
+	Value    string
 	Children []Chunk
 }
 
 // String implements the Stringer interface
 func (p KeywordChunk) String() string {
-	return fmt.Sprintf("keywordChunk{Position:%v,Keyword:'%v',Children:%v}", p.Position, p.Keyword, p.Children)
+	return fmt.Sprintf("keywordChunk{Position:%v,Keyword:%v,Value:%v,Children:%v}", p.Position, p.Keyword, p.Value, p.Children)
 }
 
 // GetPosition implements the Chunk interface
@@ -43,7 +44,7 @@ func (p *KeywordChunk) SetPosition(pos int) {
 
 // GetValue implements the Chunk interface
 func (p *KeywordChunk) GetValue() string {
-	return p.Keyword
+	return p.Value
 }
 
 // KeywordChunkHandle parse the inputChunks(which contains MetaCharChunk, PlaintextChunk, RawTextChunk )
@@ -66,7 +67,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 			token, newIndex, err := consumeToken(inputChunks, index+1)
 			if err != nil {
 				log.Println(err)
-				return outputChunks, err
+				return nil, err
 			}
 
 			switch token[0].GetValue() {
@@ -78,13 +79,14 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-
-			case ListItemMark:
-				outputChunks, index, err = listItemHandle(token[0], inputChunks, outputChunks, newIndex)
+			case ListItemMark, ChapterIndexKeyword, FigureIndexKeyword, TableIndexKeyword, ListIndexKeyword, CodeIndexKeyword:
+				outputChunks, index, err = simpleKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case AnchorBlock:
 				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case ReferToBlock:
 				outputChunks, index, err = referToBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case TitleKeyword, SubTitleKeyword, AuthorKeyword, CreateDateKeyword, ModifyDateKeyword, KeywordsKeyword:
+				outputChunks, index, err = metaKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case BlockCode:
 				outputChunks, index, err = blockCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
@@ -101,11 +103,10 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 			}
 			if err != nil {
 				log.Fatalln(err)
-				return outputChunks, err
+				return nil, err
 			}
 			continue
 		} else {
-
 			outputChunks = append(outputChunks, inputChunk)
 		}
 		index++
@@ -320,6 +321,37 @@ func blockCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index 
 	return outputChunks, newIndex, nil
 }
 
+func metaKeywordHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+
+	plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
+
+	if !ok {
+		log.Fatalln(errExpectPlainText)
+		return outputChunks, index, errExpectPlainText
+	}
+	firstLineChunk, restLineChunk, err := plainTextChunk.FirstLineRestLines()
+	if err != nil {
+		log.Fatalln(errExpectPlainText)
+		return outputChunks, index, errExpectPlainText
+	}
+	//update the plainTextChunk in-place
+	if restLineChunk == nil {
+		plainTextChunk.Value = ""
+	} else {
+		plainTextChunk.Value = restLineChunk.GetValue()
+		plainTextChunk.Position = restLineChunk.GetPosition()
+	}
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword: token.GetValue(),
+		Value:   firstLineChunk.GetValue(),
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	outputChunks = append(outputChunks, plainTextChunk)
+	newIndex = index + 1
+	return outputChunks, newIndex, nil
+}
+
 func sectionBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
 	header := token.GetValue()
 	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
@@ -403,7 +435,8 @@ func listBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) 
 	return outputChunks, newIndex, nil
 }
 
-func listItemHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+//only keyword itself, no following blocks
+func simpleKeywordHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
 	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
 		Keyword: token.GetValue(),
 	}

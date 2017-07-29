@@ -10,6 +10,7 @@ var (
 )
 
 const (
+	//inline
 	EmphasisFormat string = "e"
 	StrongFormat   string = "s"
 	HyperLink      string = "w"
@@ -17,6 +18,7 @@ const (
 	AnchorBlock    string = "a"
 	ReferToBlock   string = "k"
 
+	//section
 	BlockCode      string = "code"
 	SectionHeader  string = "h"
 	SectionHeader1 string = "h1"
@@ -29,6 +31,21 @@ const (
 	OrderList    string = "ol"
 	BulletList   string = "ul"
 	ListItemMark string = "-"
+
+	//meta
+	TitleKeyword      = "title"
+	SubTitleKeyword   = "sub-title"
+	AuthorKeyword     = "author"
+	CreateDateKeyword = "create-date"
+	ModifyDateKeyword = "modify-date"
+	KeywordsKeyword   = "keywords"
+
+	//index
+	ChapterIndexKeyword = "toc"
+	FigureIndexKeyword  = "figure-index"
+	TableIndexKeyword   = "table-index"
+	ListIndexKeyword    = "list-index"
+	CodeIndexKeyword    = "code-index"
 )
 
 var (
