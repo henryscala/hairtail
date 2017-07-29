@@ -92,10 +92,8 @@ func ChunkRender(chunk Chunk) (string, error) {
 		return KeywordChunkRender(chunk)
 	case *PlainTextChunk:
 		return PlainTextChunkRender(chunk)
-
 	case *RawTextChunk:
 		return RawTextChunkRender(chunk)
-
 	default:
 		log.Fatalln("not implemented")
 		panic("not implemented")

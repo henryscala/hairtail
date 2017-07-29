@@ -36,6 +36,7 @@ func (p *SectionChunk) GetValue() string {
 
 }
 
+/*
 // SectionChunkHandle
 func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 	var (
@@ -134,3 +135,4 @@ func putLowerLevelSectionsToHigherLevelSections(inputChunks []Chunk) []Chunk {
 	}
 	return chunkList
 }
+*/
