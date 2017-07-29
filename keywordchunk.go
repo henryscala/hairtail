@@ -75,225 +75,37 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			switch token[0].GetValue() {
 			case EmphasisFormat, StrongFormat:
-
-				chunks, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err != nil {
-					log.Println(err)
-					return outputChunks, err
-				}
-				chunks, err = KeywordChunkHandle(chunks) //recursive
-				if err != nil {
-					log.Println(err)
-					return outputChunks, err
-				}
-				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-					Keyword:  token[0].GetValue(),
-					Children: []Chunk{chunks[1]},
-				}
-				outputChunks = append(outputChunks, keywordChunk)
-				index = newIndex
+				outputChunks, index, err = inlineBlockOneParamHandle(token[0], inputChunks, outputChunks, newIndex)
 
 			case HyperLink:
+				outputChunks, index, err = hyperLinkBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
-				chunksUrl, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				chunksUrl, err = KeywordChunkHandle(chunksUrl) //recursive
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-
-				chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				chunksContent, err = KeywordChunkHandle(chunksContent) //recursive
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-
-				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-					Keyword:  token[0].GetValue(),
-					Children: []Chunk{chunksUrl[1], chunksContent[1]},
-				}
-				outputChunks = append(outputChunks, keywordChunk)
-				index = newIndex
 			case InlineCode:
-				chunks, newIndex1, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err == nil {
+				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
-					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-						Keyword:  token[0].GetValue(),
-						Children: []Chunk{chunks[1]},
-					}
-					outputChunks = append(outputChunks, keywordChunk)
-					newIndex = newIndex1
-					index = newIndex
-				} else {
-					//InlineCode content may be either EmbracedBlock or RawTextBlock
-					if newIndex >= len(inputChunks) {
-						log.Fatalln(errIndexOutOfBound)
-						return outputChunks, errIndexOutOfBound
-					}
-					rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
-					if !ok {
-						log.Fatalln(errExpectRawText)
-						return outputChunks, errExpectRawText
-					}
-
-					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-						Keyword:  token[0].GetValue(),
-						Children: []Chunk{rawTextChunk},
-					}
-
-					outputChunks = append(outputChunks, keywordChunk)
-					newIndex++
-					index = newIndex
-				}
 			case ListItemMark:
-				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-					Keyword: token[0].GetValue(),
-				}
-				outputChunks = append(outputChunks, keywordChunk)
-
-				index = newIndex
-
+				outputChunks, index, err = listItemHandle(token[0], inputChunks, outputChunks, newIndex)
+			case AnchorBlock:
+				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case ReferToBlock:
+				outputChunks, index, err = referToBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case BlockCode:
+				outputChunks, index, err = blockCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
-				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
-
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				chunksContent, newIndex1, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err == nil {
-					blockCodeChunk := &BlockCodeChunk{
-						Position: token[0].GetPosition(),
-						Id:       tokenChunks[1].GetValue(),
-						Value:    chunksContent[1].GetValue(),
-					}
-					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-						Keyword:  token[0].GetValue(),
-						Children: []Chunk{blockCodeChunk},
-					}
-
-					outputChunks = append(outputChunks, keywordChunk)
-					index = newIndex1
-				} else {
-					//BlockCode content may be either EmbracedBlock or RawTextBlock
-					if newIndex >= len(inputChunks) {
-						log.Fatalln(errIndexOutOfBound)
-						return outputChunks, errIndexOutOfBound
-					}
-					rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
-					if !ok {
-						log.Fatalln(errExpectRawText)
-						return outputChunks, errExpectRawText
-					}
-
-					blockCodeChunk := &BlockCodeChunk{
-						Position: token[0].GetPosition(),
-						Id:       tokenChunks[1].GetValue(),
-						Value:    rawTextChunk.GetValue(),
-					}
-					keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-						Keyword:  token[0].GetValue(),
-						Children: []Chunk{blockCodeChunk},
-					}
-
-					outputChunks = append(outputChunks, keywordChunk)
-					newIndex++
-					index = newIndex
-				}
 			case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 				SectionHeader4, SectionHeader5, SectionHeader6:
+				outputChunks, index, err = sectionBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
-				header := token[0].GetValue()
-				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
-
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				if newIndex > len(inputChunks) {
-					log.Fatalln(errIndexOutOfBound)
-					return outputChunks, errIndexOutOfBound
-				}
-
-				plainTextChunk, ok := inputChunks[newIndex].(*PlainTextChunk)
-				newIndex++
-				if !ok {
-					log.Fatalln(errExpectPlainText)
-					return outputChunks, errExpectPlainText
-				}
-				firstLineChunk, restLineChunk, err := plainTextChunk.FirstLineRestLines()
-				if err != nil {
-					log.Fatalln(errExpectPlainText)
-					return outputChunks, errExpectPlainText
-				}
-				//update the plainTextChunk in-place
-				if restLineChunk == nil {
-					plainTextChunk.Value = ""
-				} else {
-					plainTextChunk.Value = restLineChunk.GetValue()
-					plainTextChunk.Position = restLineChunk.GetPosition()
-				}
-				level := gSectionLevel[header]
-
-				sectionChunk := &SectionChunk{Position: token[0].GetPosition(),
-					Level: level, Caption: firstLineChunk.GetValue(),
-					Id: tokenChunks[1].GetValue(),
-				}
-				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-					Keyword:  token[0].GetValue(),
-					Children: []Chunk{sectionChunk},
-				}
-				outputChunks = append(outputChunks, keywordChunk)
-				outputChunks = append(outputChunks, plainTextChunk)
-				index = newIndex
 			case OrderList, BulletList:
-				tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, newIndex)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
+				outputChunks, index, err = listBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 
-				chunksContent, err = KeywordChunkHandle(chunksContent)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-
-				listChunk := &ListChunk{Position: token[0].GetPosition(),
-					Id:       tokenChunks[1].GetValue(),
-					ListType: token[0].GetValue(),
-				}
-
-				items, _, err := consumeListItems(chunksContent[1:len(chunksContent)-1], 0)
-				if err != nil {
-					log.Fatalln(err)
-					return outputChunks, err
-				}
-				listChunk.Items = items
-				keywordChunk := &KeywordChunk{Position: token[0].GetPosition(),
-					Keyword:  token[0].GetValue(),
-					Children: []Chunk{listChunk},
-				}
-				outputChunks = append(outputChunks, keywordChunk)
-				index = newIndex
 			default:
+				log.Fatal("not implemented")
 				panic("not implemented")
+			}
+			if err != nil {
+				log.Fatalln(err)
+				return outputChunks, err
 			}
 			continue
 		} else {
@@ -306,21 +118,324 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 	return outputChunks, nil
 }
 
-func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {
-	ignoreBlank := func() {
+func referToBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
 
-		for index < len(inputChunks) {
-			plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
-			if ok && len(strings.Trim(plainTextChunk.Value, BlankChars)) == 0 {
-				index++
-			} else {
-				return
-			}
-		}
-
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
 	}
 
-	ignoreBlank()
+	chunk := &ReferToChunk{
+		Position: token.GetPosition(),
+		Id:       tokenChunks[1].GetValue(),
+		Value:    "",
+	}
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{chunk},
+	}
+
+	outputChunks = append(outputChunks, keywordChunk)
+
+	return outputChunks, newIndex, nil
+}
+
+func anchorBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err != nil {
+		log.Fatal(err)
+		return outputChunks, index, err
+	}
+
+	chunksContent, err = KeywordChunkHandle(chunksContent) //recursive
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	if len(chunksContent) < 2 {
+		log.Fatalln(errExpectRBrace)
+		return outputChunks, index, errExpectRBrace
+	}
+
+	var value string
+	if len(chunksContent) == 2 {
+		value = ""
+	} else {
+		value = chunksContent[1].GetValue()
+	}
+
+	chunk := &AnchorChunk{
+		Position: token.GetPosition(),
+		Id:       tokenChunks[1].GetValue(),
+		Value:    value,
+	}
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{chunk},
+	}
+
+	outputChunks = append(outputChunks, keywordChunk)
+
+	return outputChunks, newIndex, nil
+}
+
+//inlineBlockOneParamHandle handles inline format keyword followed by one pair of brace
+func inlineBlockOneParamHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	chunks, newIndex, err := consumeEmbracedBlock(inputChunks, index)
+	if err != nil {
+		log.Println(err)
+		return outputChunks, index, err
+	}
+	chunks, err = KeywordChunkHandle(chunks) //recursive
+	if err != nil {
+		log.Println(err)
+		return outputChunks, index, err
+	}
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{chunks[1]},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+
+	return outputChunks, newIndex, nil
+}
+
+func hyperLinkBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	chunksUrl, newIndex, err := consumeEmbracedBlock(inputChunks, index)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksUrl, err = KeywordChunkHandle(chunksUrl) //recursive
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, err = KeywordChunkHandle(chunksContent) //recursive
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{chunksUrl[1], chunksContent[1]},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	return outputChunks, newIndex, nil
+}
+
+func inlineCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	chunks, newIndex1, err := consumeEmbracedBlock(inputChunks, index)
+	if err == nil {
+
+		keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+			Keyword:  token.GetValue(),
+			Children: []Chunk{chunks[1]},
+		}
+		outputChunks = append(outputChunks, keywordChunk)
+		newIndex = newIndex1
+
+	} else {
+		//InlineCode content may be either EmbracedBlock or RawTextBlock
+		if index >= len(inputChunks) {
+			log.Fatalln(errIndexOutOfBound)
+			return outputChunks, index, errIndexOutOfBound
+		}
+		rawTextChunk, ok := inputChunks[index].(*RawTextChunk)
+		if !ok {
+			log.Fatalln(errExpectRawText)
+			return outputChunks, index, errExpectRawText
+		}
+
+		keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+			Keyword:  token.GetValue(),
+			Children: []Chunk{rawTextChunk},
+		}
+
+		outputChunks = append(outputChunks, keywordChunk)
+		newIndex = index + 1
+
+	}
+	return outputChunks, newIndex, nil
+}
+
+func blockCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, newIndex1, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err == nil {
+		blockCodeChunk := &BlockCodeChunk{
+			Position: token.GetPosition(),
+			Id:       tokenChunks[1].GetValue(),
+			Value:    chunksContent[1].GetValue(),
+		}
+		keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+			Keyword:  token.GetValue(),
+			Children: []Chunk{blockCodeChunk},
+		}
+
+		outputChunks = append(outputChunks, keywordChunk)
+		newIndex = newIndex1
+	} else {
+		//BlockCode content may be either EmbracedBlock or RawTextBlock
+		if newIndex >= len(inputChunks) {
+			log.Fatalln(errIndexOutOfBound)
+			return outputChunks, index, errIndexOutOfBound
+		}
+		rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
+		if !ok {
+			log.Fatalln(errExpectRawText)
+			return outputChunks, index, errExpectRawText
+		}
+
+		blockCodeChunk := &BlockCodeChunk{
+			Position: token.GetPosition(),
+			Id:       tokenChunks[1].GetValue(),
+			Value:    rawTextChunk.GetValue(),
+		}
+		keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+			Keyword:  token.GetValue(),
+			Children: []Chunk{blockCodeChunk},
+		}
+
+		outputChunks = append(outputChunks, keywordChunk)
+		newIndex++
+
+	}
+	return outputChunks, newIndex, nil
+}
+
+func sectionBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	header := token.GetValue()
+	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	if newIndex > len(inputChunks) {
+		log.Fatalln(errIndexOutOfBound)
+		return outputChunks, index, errIndexOutOfBound
+	}
+
+	plainTextChunk, ok := inputChunks[newIndex].(*PlainTextChunk)
+	newIndex++
+	if !ok {
+		log.Fatalln(errExpectPlainText)
+		return outputChunks, index, errExpectPlainText
+	}
+	firstLineChunk, restLineChunk, err := plainTextChunk.FirstLineRestLines()
+	if err != nil {
+		log.Fatalln(errExpectPlainText)
+		return outputChunks, index, errExpectPlainText
+	}
+	//update the plainTextChunk in-place
+	if restLineChunk == nil {
+		plainTextChunk.Value = ""
+	} else {
+		plainTextChunk.Value = restLineChunk.GetValue()
+		plainTextChunk.Position = restLineChunk.GetPosition()
+	}
+	level := gSectionLevel[header]
+
+	sectionChunk := &SectionChunk{Position: token.GetPosition(),
+		Level: level, Caption: firstLineChunk.GetValue(),
+		Id: tokenChunks[1].GetValue(),
+	}
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{sectionChunk},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	outputChunks = append(outputChunks, plainTextChunk)
+	return outputChunks, newIndex, nil
+}
+
+func listBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := cosumeEmbracedToken(inputChunks, index)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	chunksContent, err = KeywordChunkHandle(chunksContent)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	listChunk := &ListChunk{Position: token.GetPosition(),
+		Id:       tokenChunks[1].GetValue(),
+		ListType: token.GetValue(),
+	}
+
+	items, _, err := consumeListItems(chunksContent[1:len(chunksContent)-1], 0)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	listChunk.Items = items
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{listChunk},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	return outputChunks, newIndex, nil
+}
+
+func listItemHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword: token.GetValue(),
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	newOutputChunks = outputChunks
+	newIndex = index
+	err = nil
+	return
+}
+
+func ignoreBlank(inputChunks []Chunk, index int) (newIndex int) {
+
+	for index < len(inputChunks) {
+		plainTextChunk, ok := inputChunks[index].(*PlainTextChunk)
+		if ok && len(strings.Trim(plainTextChunk.Value, BlankChars)) == 0 {
+			index++
+		} else {
+			break
+		}
+	}
+	newIndex = index
+	return
+
+}
+
+func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {
+
+	index = ignoreBlank(inputChunks, index)
 
 	if index >= len(inputChunks) {
 		return nil, index, errIndexOutOfBound
@@ -328,6 +443,7 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 
 	listItemChunk, ok := inputChunks[index].(*KeywordChunk)
 	if !ok || listItemChunk.Keyword != ListItemMark {
+		log.Println("== listItemChunk : ", listItemChunk)
 		return nil, index, errExpectListItem
 	}
 
@@ -371,14 +487,16 @@ func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex i
 
 	switch option {
 	case ListEnd, ListItemFound:
-		item.Value = append(item.Value, inputChunks[index+1:newIndex]...) //no difference for now
+		item.Value = append(item.Value, inputChunks[index+1:newIndex]...)
 	case OrderListFound, BulletListFound:
-		item.Value = append(item.Value, inputChunks[index+1:newIndex]...) //no difference for now
+		newIndex++ //also contain the nested list
+		item.Value = append(item.Value, inputChunks[index+1:newIndex]...)
 	}
 	return item, newIndex, nil
 }
 
 func consumeListItems(inputChunks []Chunk, index int) (items []*ListItem, newIndex int, err error) {
+
 	for index < len(inputChunks) {
 
 		item, newIndex, err := consumeListItem(inputChunks, index)
@@ -394,13 +512,14 @@ func consumeListItems(inputChunks []Chunk, index int) (items []*ListItem, newInd
 }
 
 func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
+	index = ignoreBlank(inputChunks, index)
 	if index >= len(inputChunks) {
 		log.Println(errIndexOutOfBound)
 		return nil, index, errIndexOutOfBound
 	}
 	leftBraceChunk, ok := inputChunks[index].(*MetaCharChunk)
 	if !ok || leftBraceChunk.GetValue() != LeftBraceChar {
-		log.Println(errExpectLBrace)
+
 		return nil, index, errExpectLBrace
 	}
 
@@ -433,24 +552,28 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 
 func cosumeEmbracedToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
 	chunks1, newIndex, err := consumeEmbracedBlock(inputChunks, index)
-	if len(chunks1) != 3 {
-		fmt.Println("===== inputChunks", inputChunks)
-		fmt.Println("===== chunks1", chunks1)
+	if len(chunks1) < 3 { //there might be empty plain-text here, so the len may be > 3
+
 		debug.PrintStack()
 		log.Fatalln(errExpectToken)
 		return chunks, newIndex, errExpectToken
 	}
 
-	chunks2, _, err := consumeToken(inputChunks, index+1)
+	chunks2, newIndex2, err := consumeToken(inputChunks, index+1)
 	if err != nil {
 		log.Fatalln(err)
 		return nil, index, err
 	}
+	if newIndex2 >= newIndex {
+		return nil, index, errExpectPlainText
+	}
 
-	return []Chunk{chunks1[0], chunks2[0], chunks1[2]}, index + 3, nil
+	return []Chunk{chunks1[0], chunks2[0], chunks1[len(chunks1)-1]}, newIndex, nil
 }
 
 func consumeToken(inputChunks []Chunk, index int) (chunks []Chunk, newIndex int, err error) {
+
+	index = ignoreBlank(inputChunks, index)
 	if index >= len(inputChunks) {
 		log.Fatalln(errIndexOutOfBound)
 		return nil, index, errIndexOutOfBound

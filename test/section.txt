@@ -1,4 +1,4 @@
-
+\a{top}{top of article}
 	\h{intro} introduction of hairtail
 
 	hairtail is a tool. Refer to \w{https://github.com/henryscala}{Henryscala} to get more info.
@@ -36,3 +36,6 @@
 		}
     }#
 
+go to \k{top}.
+
+go to \k{input-grammar}

@@ -6,8 +6,6 @@ import (
 	"text/template"
 )
 
-type OutputRenderFunc func(chunk Chunk) (string, error)
-
 var (
 	gSectionTemplate    *template.Template
 	gParagraphTemplate  *template.Template
@@ -18,18 +16,24 @@ var (
 	gBlockCodeTemplate  *template.Template
 	gListTemplate       *template.Template
 	gListItemTemplate   *template.Template
+	gAnchorTemplate     *template.Template
+	gReferToTemplate    *template.Template
+
+	gInlineRenderMode bool
 )
 
 func init() {
-	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} id="{{.Id}}">{{.Caption}}</h{{.Level}}>`)
-	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>`)
+	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} id="{{.Id}}">{{.Caption}}</h{{.Level}}>` + "\n")
+	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>` + "\n")
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
-	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><pre>{{.Value}}</pre>`)
-	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>`)
-	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>`)
+	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
+	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
+	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>` + "\n")
+	gAnchorTemplate, _ = template.New("Anchor").Parse(`<a id="{{.Id}}" class="anchor">{{.Value}}</a>`)
+	gReferToTemplate, _ = template.New("ReferTo").Parse(`<a class="referto" href="#{{.Id}}">{{.Id}}</a>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -88,11 +92,10 @@ func ChunkRender(chunk Chunk) (string, error) {
 		return KeywordChunkRender(chunk)
 	case *PlainTextChunk:
 		return PlainTextChunkRender(chunk)
-	case *SectionChunk:
-		return SectionChunkRender(chunk)
+
 	case *RawTextChunk:
-		rawTextChunk := chunk.(*RawTextChunk)
-		return rawTextChunk.GetValue(), nil
+		return RawTextChunkRender(chunk)
+
 	default:
 		log.Fatalln("not implemented")
 		panic("not implemented")
@@ -173,6 +176,20 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case AnchorBlock:
+		anchorChunk := keywordChunk.Children[0].(*AnchorChunk)
+		err = gAnchorTemplate.Execute(&buf, anchorChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case ReferToBlock:
+		referToChunk := keywordChunk.Children[0].(*ReferToChunk)
+		err = gReferToTemplate.Execute(&buf, referToChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
 	case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 		SectionHeader4, SectionHeader5, SectionHeader6:
 		sectionChunk := keywordChunk.Children[0].(*SectionChunk)
@@ -206,27 +223,23 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 	return buf.String(), nil
 }
 
-func PlainTextChunkRender(chunk Chunk) (string, error) {
+func RawTextChunkRender(chunk Chunk) (string, error) {
 	return chunk.GetValue(), nil
 }
 
-func SectionChunkRender(chunk Chunk) (string, error) {
-	sectionChunk := chunk.(*SectionChunk)
-	var buf bytes.Buffer
-	var err error
-	err = gSectionTemplate.Execute(&buf, sectionChunk)
-	if err != nil {
-		return "", err
+func PlainTextChunkRender(chunk Chunk) (string, error) {
+	if gInlineRenderMode {
+		return chunk.GetValue(), nil
 	}
-	//no direct paragraphs followed the section caption
-	if sectionChunk.IsTerminal() {
 
-		return buf.String(), nil
+	var buf bytes.Buffer
+	plainTextChunk := chunk.(*PlainTextChunk)
+	plist := plainTextChunk.ToParagraphList()
+	for _, paragraph := range plist {
+		err := gParagraphTemplate.Execute(&buf, paragraph)
+		if err != nil {
+			return buf.String(), err
+		}
 	}
-	content, err := ChunkListRender(sectionChunk.Children)
-	if err != nil {
-		return "", err
-	}
-	buf.WriteString(content)
 	return buf.String(), nil
 }

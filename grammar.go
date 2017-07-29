@@ -14,6 +14,8 @@ const (
 	StrongFormat   string = "s"
 	HyperLink      string = "w"
 	InlineCode     string = "c"
+	AnchorBlock    string = "a"
+	ReferToBlock   string = "k"
 
 	BlockCode      string = "code"
 	SectionHeader  string = "h"
@@ -32,7 +34,7 @@ const (
 var (
 	gInlineFormatMap  = make(map[string]bool)
 	gInlineFormatList = []string{
-		EmphasisFormat, StrongFormat, HyperLink,
+		EmphasisFormat, StrongFormat, HyperLink, InlineCode, AnchorBlock, ReferToBlock,
 	}
 	gSectionLevel = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
 		SectionHeader3: 3, SectionHeader4: 4, SectionHeader5: 5, SectionHeader6: 6}

@@ -101,33 +101,12 @@ func ParseChunks(input string) ([]Chunk, error) {
 		log.Fatalln(err)
 		return chunks, err
 	}
+	gInlineRenderMode = true
 	chunks, err = InlineChunkListRender(chunks)
 	if err != nil {
 		log.Fatalln(err)
 		return chunks, err
 	}
-
-	/*
-			chunks, err = EmbracedChunkHandle(chunks)
-			if err != nil {
-				return chunks, err
-			}
-
-		chunks, err = KeywordChunkHandle(chunks)
-		if err != nil {
-			return chunks, err
-		}
-
-			chunks, err = InlineChunkHandle(chunks)
-			if err != nil {
-				return chunks, err
-			}
-
-			chunks, err = SectionChunkHandle(chunks)
-			if err != nil {
-				return chunks, err
-			}
-	*/
 
 	return chunks, nil
 }

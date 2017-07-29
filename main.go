@@ -12,29 +12,45 @@ var (
 	gOutputFile = flag.String("o", "output.html", "out file to put result")
 )
 
-func main() {
-	log.SetFlags(log.Lshortfile)
-	flag.Parse()
-
-	inputContent, err := ioutil.ReadFile(*gInputFile)
+func Compile(inputFile, outputFile string) error {
+	inputContent, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
 	chunks, err := ParseChunks(string(inputContent))
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
-
-	//TODO first render inline format(May combine plain text chunks), and then section format
-
+	log.Println("###########################################")
+	log.Println("rendering", inputFile)
+	log.Println("###########################################")
+	log.Println("intermediate result is :")
+	log.Println(chunks)
+	gInlineRenderMode = false
 	outputContent, err := ChunkListRender(chunks)
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
-	err = ioutil.WriteFile(*gOutputFile, []byte(outputContent), 0666)
+	err = ioutil.WriteFile(outputFile, []byte(outputContent), 0666)
+	if err != nil {
+		log.Println(err)
+	}
+	return nil
+}
+
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
+
+func main() {
+
+	flag.Parse()
+
+	err := Compile(*gInputFile, *gOutputFile)
+
 	if err != nil {
 		log.Println(err)
 	}

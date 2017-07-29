@@ -1,7 +1,7 @@
 below is a nested list. 
 
 \ul{first-nest}{
-	\- american \ul {
+	\- american \ul{ignore} {
 		\- new york
 		\- washington 
 	}

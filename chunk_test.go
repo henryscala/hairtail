@@ -2,70 +2,30 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-//refer to the below c program
-//\r~~{
-//int main() {
-//printf("hello hairtail\n");
-//return 0;
-//}
-//}~~
-//do you understand what \e{does} it mean?
-//\1 yes
-//\2 no
-//or
-//\- true
-//\- false
-
-//text = `
-//	\h{intro} introduction of hairtail
-//	hairtail is a tool
-//	\h2{input-grammar} input grammar
-//	input grammar contains inline grammar and section grammar.
-
-//	section grammar include table, list, sections etc.
-
-//	\ul{
-//		\li item1
-//		\li item2
-//	}
-
-//	\ol {
-//		\li item1
-//		\li item2
-//		\ol {
-//			\li sub-item1
-//			\li sub-item2
-//			}
-//	}
-
-//	\h2{output-format} output format
-//	output format support markdown and html, html is with higher priority
-//	`
-
 func TestParseChunks(t *testing.T) {
-	var text string
-	var err error
-	var chunkList []Chunk
-	//var chunk Chunk
-	text = `
-	\h{intro} introduction of hairtail
-	hairtail is a tool
-	\h2{input-grammar} input grammar
-	input grammar contains inline grammar and section grammar.
-    \h2{output-grammar} output grammar 
-	output grammar support markdown and html, and html with highe priority 
-	`
-	chunkList, err = ParseChunks(text)
 
-	if err != nil {
-		t.Fatal(err)
+	inputFiles := []string{
+		"inline.txt",
+		"list.txt",
+		"nestlist.txt",
+		"section.txt",
 	}
-	fmt.Println("text:", text)
-	fmt.Println("chunkList:", chunkList)
+
+	for _, file := range inputFiles {
+		outputFilePath := filepath.Join("test", fmt.Sprintf("%s%s", strings.TrimSuffix(file, filepath.Ext(file)), ".html"))
+		inputFilePath := filepath.Join("test", file)
+		err := Compile(inputFilePath, outputFilePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 }
 
 func TestRawTextChunkHandle(t *testing.T) {

@@ -1,10 +1,16 @@
-the \e{keyword} is emphasized. 
+\a{top}{top of article}
+
+the \e{keyword} is emphasized.
 
 i don't like \e{game}, remember?
 
-this is \s{stong} text. 
+this is \s{stong} text.
 
-this is \e{\s{nested}} text. 
+\a{mid} {mimddle of article}
+
+this is \e{\s{nested}} text.
+
+\a{empty}{} test of empty anchor
 
 go to \w{https://github.com/henryscala/hairtail}{hairtail} to get more details. 
 
