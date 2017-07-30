@@ -139,7 +139,7 @@ inline_block : emphasis_block
 			
              ; 
 
-caption : CAPTAIN embraced_id (LBRACE string RBRACE) ; //it is to add caption to blocks(non-inline) that has no caption, e.g. list, table, code-block, the id here is the id of the block to add caption to 
+caption : CAPTAIN embraced_id (LBRACE string RBRACE) ; //it is to add caption to blocks(non-inline) that has no caption, e.g. list, table, code-block, image,the id here is the id of the block to add caption to 
 
 list_block : bullet_list_block | order_list_block ; 
 

@@ -35,6 +35,9 @@
 			printf("%s", hello world); 
 		}
     }#
+	
+	\h2{image-intro} introduction of image 
+	\image{image-example}{http://www.w3school.com.cn/i/eg_tulip.jpg}
 
 go to \k{top}.
 

@@ -76,7 +76,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 			case HyperLink:
 				outputChunks, index, err = hyperLinkBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-
+			case ImageKeyword:
+				outputChunks, index, err = imageBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case TableCellDelimiterKeyword, ListItemMark, ChapterIndexKeyword, FigureIndexKeyword, TableIndexKeyword, ListIndexKeyword, CodeIndexKeyword:
@@ -232,6 +233,33 @@ func hyperLinkBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index 
 	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
 		Keyword:  token.GetValue(),
 		Children: []Chunk{chunksUrl[1], chunksContent[1]},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	return outputChunks, newIndex, nil
+}
+
+func imageBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	imageChunk := &ImageChunk{Id: tokenChunks[1].GetValue(),
+		Src:      chunksContent[1].GetValue(),
+		Position: token.GetPosition(),
+	}
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{imageChunk},
 	}
 	outputChunks = append(outputChunks, keywordChunk)
 	return outputChunks, newIndex, nil

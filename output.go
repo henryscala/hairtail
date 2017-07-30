@@ -21,6 +21,7 @@ var (
 	gTableTemplate      *template.Template
 	gTableRowTemplate   *template.Template
 	gTableCellTemplate  *template.Template
+	gImageTemplate      *template.Template
 
 	gInlineRenderMode bool
 )
@@ -40,6 +41,7 @@ func init() {
 	gTableTemplate, _ = template.New("Table").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><table>{{.Content}}</table>` + "\n")
 	gTableRowTemplate, _ = template.New("TableRow").Parse(`<tr>{{.}}</tr>` + "\n")
 	gTableCellTemplate, _ = template.New("TableCell").Parse(`<td>{{.}}</td>`)
+	gImageTemplate, _ = template.New("Image").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><img src="{{.Src}}" alt="{{.Caption}}">`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -162,6 +164,13 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case ImageKeyword:
+		imageChunk := keywordChunk.Children[0].(*ImageChunk)
+		err = gImageTemplate.Execute(&buf, imageChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
 	case InlineCode:
 		text, err = ChunkRender(keywordChunk.Children[0])
 		if err != nil {
@@ -224,7 +233,7 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 	case TableKeyword:
 		tableChunk := keywordChunk.Children[0].(*TableChunk)
 		var rowBuf bytes.Buffer
-		var tableBuf bytes.Buffer
+
 		for row := 0; row < len(tableChunk.Cells); row++ {
 			rowChunks := tableChunk.Cells[row]
 			var cellBuf bytes.Buffer
@@ -243,14 +252,14 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			}
 
 		}
-		err := gTableTemplate.Execute(&tableBuf, struct{ Id, Caption, Content string }{tableChunk.Id, tableChunk.Caption, rowBuf.String()})
+		err := gTableTemplate.Execute(&buf, struct{ Id, Caption, Content string }{tableChunk.Id, tableChunk.Caption, rowBuf.String()})
 		if err != nil {
 			log.Println(err)
 			return text, err
 		}
-		return tableBuf.String(), nil
 
 	default:
+		log.Fatal("not implemented")
 		panic("not implemented")
 	}
 	return buf.String(), nil

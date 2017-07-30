@@ -17,6 +17,7 @@ const (
 	InlineCode     string = "c"
 	AnchorBlock    string = "a"
 	ReferToBlock   string = "k"
+	ImageKeyword          = "image"
 
 	//section
 	BlockCode      string = "code"
