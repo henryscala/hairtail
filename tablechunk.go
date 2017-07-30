@@ -32,3 +32,15 @@ func (p *TableChunk) SetPosition(pos int) {
 func (p *TableChunk) GetValue() string {
 	return p.Id
 }
+
+func (p *TableChunk) GetId() string {
+	return p.Id
+}
+
+func (p *TableChunk) GetCaption() string {
+	return p.Caption
+}
+
+func (p *TableChunk) SetCaption(c string) {
+	p.Caption = c
+}

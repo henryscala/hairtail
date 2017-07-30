@@ -37,3 +37,14 @@ func (p *ListChunk) SetPosition(pos int) {
 func (p *ListChunk) GetValue() string {
 	return p.Id
 }
+func (p *ListChunk) GetId() string {
+	return p.Id
+}
+
+func (p *ListChunk) GetCaption() string {
+	return p.Caption
+}
+
+func (p *ListChunk) SetCaption(c string) {
+	p.Caption = c
+}

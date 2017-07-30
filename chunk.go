@@ -38,6 +38,18 @@ func init() {
 	}
 }
 
+type WithId interface {
+	GetId() string
+}
+type WithCaption interface {
+	GetCaption() string
+	SetCaption(string)
+}
+type WithIdCaption interface {
+	WithId
+	WithCaption
+}
+
 // Chunk denotes a block of text, the block may be length 1 to n in bytes
 type Chunk interface {
 	GetPosition() int
@@ -95,6 +107,12 @@ func ParseChunks(input string) ([]Chunk, error) {
 		log.Fatalln(err)
 		return chunks, err
 	}
+	chunks, err = CaptionChunkHandle(chunks)
+	if err != nil {
+		log.Fatalln(err)
+		return chunks, err
+	}
+
 	gInlineRenderMode = true
 	chunks, err = InlineChunkListRender(chunks)
 	if err != nil {
@@ -103,6 +121,43 @@ func ParseChunks(input string) ([]Chunk, error) {
 	}
 
 	return chunks, nil
+}
+
+//CaptionChunkHandle filter the Caption chunk, and set caption to the chunk it refers to
+func CaptionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
+	outputChunks := []Chunk{}
+	idToChunk := make(map[string]Chunk)
+	captionChunks := []Chunk{}
+	for _, chunk := range inputChunks {
+		keywordChunk, ok := chunk.(*KeywordChunk)
+		if !ok {
+			outputChunks = append(outputChunks, chunk)
+			continue
+		}
+		if gChunkWithCaptionMap[keywordChunk.Keyword] {
+			chunkWithIdCaption := keywordChunk.Children[0].(WithIdCaption)
+			idToChunk[chunkWithIdCaption.GetId()] = chunk
+			outputChunks = append(outputChunks, chunk)
+			continue
+		}
+		if keywordChunk.Keyword == CaptionKeyword {
+			captionChunks = append(captionChunks, chunk)
+			continue
+		}
+		outputChunks = append(outputChunks, chunk)
+	}
+
+	for _, captionChunk := range captionChunks {
+		id := captionChunk.(*KeywordChunk).Children[0]
+		caption := captionChunk.(*KeywordChunk).Children[1]
+		chunk, ok := idToChunk[id.GetValue()]
+		if !ok {
+			log.Println("caption ", caption, "has not found Id", id.GetValue())
+			return nil, errExpectChunkWithId
+		}
+		chunk.(*KeywordChunk).Children[0].(WithIdCaption).SetCaption(caption.GetValue())
+	}
+	return outputChunks, nil
 }
 
 //MetaChunkHandle turns the chunk that is PlainTextChunk in inputChunks to MetaCharChunks if any

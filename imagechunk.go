@@ -32,3 +32,15 @@ func (p *ImageChunk) SetPosition(pos int) {
 func (p *ImageChunk) GetValue() string {
 	return p.Id
 }
+
+func (p *ImageChunk) GetId() string {
+	return p.Id
+}
+
+func (p *ImageChunk) GetCaption() string {
+	return p.Caption
+}
+
+func (p *ImageChunk) SetCaption(c string) {
+	p.Caption = c
+}

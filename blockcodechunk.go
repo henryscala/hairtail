@@ -32,3 +32,15 @@ func (p *BlockCodeChunk) SetPosition(pos int) {
 func (p *BlockCodeChunk) GetValue() string {
 	return p.Value
 }
+
+func (p *BlockCodeChunk) GetId() string {
+	return p.Id
+}
+
+func (p *BlockCodeChunk) GetCaption() string {
+	return p.Caption
+}
+
+func (p *BlockCodeChunk) SetCaption(c string) {
+	p.Caption = c
+}

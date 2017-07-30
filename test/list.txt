@@ -1,5 +1,5 @@
 below is a ordered list. 
-
+\caption{first-ol}{optional caption for first-ol}
 \ol{first-ol}{
 	\- cat
 	\- elephant
@@ -7,7 +7,7 @@ below is a ordered list.
 }
 
 below is a bullet list. 
-
+\caption{first-ul}{optional caption for first-ul}
 \ul{first-ul}{ 
 	\- asia 
 	\- europe 

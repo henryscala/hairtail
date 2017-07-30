@@ -24,12 +24,13 @@
 	But \s{html} with higher priority. 
 	
 	\h2{block-code} intro block code 
-	
+	\caption{code-list-1}{code list example 1}	
 	this is block code \code{code-list-1}{
 		println 1
 		println 2 
     }
 	
+	\caption{code-list-2}{code list example 2}	
 	this is also block code \code{code-list-2}\r#{
 		void main(){
 			printf("%s", hello world); 
@@ -37,6 +38,7 @@
     }#
 	
 	\h2{image-intro} introduction of image 
+	\caption{image-example}{example of a image from w3c}
 	\image{image-example}{http://www.w3school.com.cn/i/eg_tulip.jpg}
 
 go to \k{top}.

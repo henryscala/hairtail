@@ -9,13 +9,14 @@ import (
 )
 
 var (
-	errExpectToken     = errors.New("expect token")
-	errIndexOutOfBound = errors.New("index out of bound")
-	errExpectLBrace    = errors.New("expect Left Brace")
-	errExpectRBrace    = errors.New("expect Right Brace")
-	errExpectPlainText = errors.New("expect Plain Text")
-	errExpectRawText   = errors.New("expect Raw Text")
-	errExpectListItem  = errors.New("expect List Item ")
+	errExpectToken       = errors.New("expect token")
+	errIndexOutOfBound   = errors.New("index out of bound")
+	errExpectLBrace      = errors.New("expect Left Brace")
+	errExpectRBrace      = errors.New("expect Right Brace")
+	errExpectPlainText   = errors.New("expect Plain Text")
+	errExpectRawText     = errors.New("expect Raw Text")
+	errExpectListItem    = errors.New("expect List Item ")
+	errExpectChunkWithId = errors.New("expect chunk with specific Id ")
 )
 
 // KeywordChunk denotes meta char '\' followed by a token.
@@ -90,15 +91,15 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = metaKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case BlockCode:
 				outputChunks, index, err = blockCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-
 			case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 				SectionHeader4, SectionHeader5, SectionHeader6:
 				outputChunks, index, err = sectionBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-
 			case OrderList, BulletList:
 				outputChunks, index, err = listBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case TableKeyword:
 				outputChunks, index, err = tableBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case CaptionKeyword:
+				outputChunks, index, err = captionBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			default:
 				log.Fatal("not implemented")
 				panic("not implemented")
@@ -233,6 +234,32 @@ func hyperLinkBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index 
 	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
 		Keyword:  token.GetValue(),
 		Children: []Chunk{chunksUrl[1], chunksContent[1]},
+	}
+	outputChunks = append(outputChunks, keywordChunk)
+	return outputChunks, newIndex, nil
+}
+
+func captionBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	chunksContent, newIndex, err := consumeEmbracedBlock(inputChunks, newIndex)
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+	chunksContent, err = KeywordChunkHandle(chunksContent) //recursive
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{tokenChunks[1], chunksContent[1]}, //id + caption
 	}
 	outputChunks = append(outputChunks, keywordChunk)
 	return outputChunks, newIndex, nil

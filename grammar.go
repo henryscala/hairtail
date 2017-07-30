@@ -18,6 +18,7 @@ const (
 	AnchorBlock    string = "a"
 	ReferToBlock   string = "k"
 	ImageKeyword          = "image"
+	CaptionKeyword        = "caption"
 
 	//section
 	BlockCode      string = "code"
@@ -57,12 +58,19 @@ var (
 	gInlineFormatList = []string{
 		EmphasisFormat, StrongFormat, HyperLink, InlineCode, AnchorBlock, ReferToBlock,
 	}
-	gSectionLevel = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
+	gChunkWithCaptionList = []string{
+		OrderList, BulletList, TableKeyword, BlockCode, ImageKeyword,
+	}
+	gChunkWithCaptionMap = make(map[string]bool)
+	gSectionLevel        = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
 		SectionHeader3: 3, SectionHeader4: 4, SectionHeader5: 5, SectionHeader6: 6}
 )
 
 func init() {
 	for _, f := range gInlineFormatList {
 		gInlineFormatMap[f] = true
+	}
+	for _, f := range gChunkWithCaptionList {
+		gChunkWithCaptionMap[f] = true
 	}
 }

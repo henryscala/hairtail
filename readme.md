@@ -25,13 +25,20 @@ Efferency is not the first important thing. There may be several passes while ha
 \w is for hyper links. \w{https://github.com/henryscala}{Henryscala}.
 
 ## raw text 
-\r~~~{raw text inside, which may be multiple line}~~~, the number of ~ is [0-n]. The intention is that inside the brace, no escape is required. 
+\r##{raw text inside, which may be multiple line}##, the number of # is [0-n]. The intention is that inside the brace, no escape is required. 
 
 ## TODO
-Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.
+[] Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.
 
-Generate Table
+[done] Generate Table
 
-command line argument to specify a html template to put renderred content in
+[] command line argument to specify a html template to put renderred content in
 
 [done] Generate List that may be nested
+
+[] generate index including figure, toc, list, table, block-code 
+
+[] python
+
+[] inline tex and block tex 
+

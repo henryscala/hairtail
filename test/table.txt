@@ -1,3 +1,4 @@
+\caption {table-id}{optional caption for table}
 \table{table-id}{ 
 	name \d score
 	henry \d 100
