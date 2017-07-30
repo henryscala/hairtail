@@ -42,3 +42,4 @@ Efferency is not the first important thing. There may be several passes while ha
 
 [] inline tex and block tex 
 
+[] numbering table, block-code, list, figure 
