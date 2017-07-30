@@ -1,4 +1,11 @@
 \a{top}{top of article}
+\h{misc} miscelaneous 
+
+\h2{license} license  
+GPL V3.0 
+\h2{thanks} thanks 
+The author of halibut and tex
+
 	\h{intro} introduction of hairtail
 
 	hairtail is a tool. Refer to \w{https://github.com/henryscala}{Henryscala} to get more info.

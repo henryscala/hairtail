@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
+	"strconv"
 )
 
 //meta characters
@@ -112,6 +114,11 @@ func ParseChunks(input string) ([]Chunk, error) {
 		log.Fatalln(err)
 		return chunks, err
 	}
+	chunks, err = SectionChunkHandle(chunks)
+	if err != nil {
+		log.Fatalln(err)
+		return chunks, err
+	}
 
 	gInlineRenderMode = true
 	chunks, err = InlineChunkListRender(chunks)
@@ -121,6 +128,71 @@ func ParseChunks(input string) ([]Chunk, error) {
 	}
 
 	return chunks, nil
+}
+
+//SectionChunkHandle set numbering of SectionChunk
+func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
+	sectionChunkList := []*SectionChunk{}
+	var levels []int
+	var levelMap = make(map[int]bool)
+	var levelNumberingMap = make(map[int]int)
+
+	storeLevel := func(level int) {
+		if levelMap[level] {
+			return
+		}
+		levels = append(levels, level)
+		levelMap[level] = true
+	}
+
+	getLevelIndex := func(level int) int {
+		for i := 0; i < len(levels); i++ {
+			if levels[i] == level {
+				return i
+			}
+		}
+		log.Fatalln("should not reach here")
+		panic("should not reach here")
+	}
+
+	resetLevelLowerThan := func(level int) {
+		from := getLevelIndex(level)
+		for i := from + 1; i < len(levels); i++ {
+			levelNumberingMap[levels[i]] = 0
+		}
+	}
+
+	calcNumbering := func(level int) string {
+		var buf bytes.Buffer
+		idx := getLevelIndex(level)
+		for i := 0; i <= idx; i++ {
+			if i != 0 {
+				buf.WriteString(".")
+			}
+			buf.WriteString(strconv.Itoa(levelNumberingMap[levels[i]]))
+		}
+		return buf.String()
+	}
+
+	for _, c := range inputChunks {
+		if keywordChunk, ok := c.(*KeywordChunk); ok {
+			level, isSection := gSectionLevel[keywordChunk.Keyword]
+			if isSection {
+				sectionChunkList = append(sectionChunkList, keywordChunk.Children[0].(*SectionChunk))
+				storeLevel(level)
+			}
+		}
+		sort.Ints(levels)
+	}
+	for _, sectionChunk := range sectionChunkList {
+		level := sectionChunk.Level
+		resetLevelLowerThan(level)
+		levelNumberingMap[level]++
+		sectionChunk.Numbering = calcNumbering(level)
+
+	}
+
+	return inputChunks, nil
 }
 
 //CaptionChunkHandle filter the Caption chunk, and set caption to the chunk it refers to

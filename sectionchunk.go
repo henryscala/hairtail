@@ -6,17 +6,18 @@ import (
 
 // SectionChunk denotes Sections in article. It is nested structure.
 type SectionChunk struct {
-	Position int
-	Level    int //1 2 .. 6
-	Id       string
-	Caption  string
-	Children []Chunk
+	Position  int
+	Level     int //1 2 .. 6
+	Id        string
+	Caption   string
+	Numbering string //optional Numbering before Caption
+	Children  []Chunk
 }
 
 // String implements the Stringer interface
 func (p SectionChunk) String() string {
-	return fmt.Sprintf("SectionChunk{Position: %d, Level: %d, Id: %v, Caption: %v, Children: %v}",
-		p.GetPosition(), p.Level, p.Id, p.Caption, p.Children)
+	return fmt.Sprintf("SectionChunk{Position: %d, Level: %d, Id: %v, Caption: %v, Numbering:%v,Children: %v}",
+		p.GetPosition(), p.Level, p.Id, p.Caption, p.Numbering, p.Children)
 }
 
 // GetPosition implements the Chunk interface

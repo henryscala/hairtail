@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} id="{{.Id}}">{{.Caption}}</h{{.Level}}>` + "\n")
+	gSectionTemplate, _ = template.New("Section").Parse(`<h{{.Level}} id="{{.Id}}">{{.Numbering}} {{.Caption}}</h{{.Level}}>` + "\n")
 	gParagraphTemplate, _ = template.New("Paragraph").Parse(`<p>{{.}}</p>` + "\n")
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
