@@ -448,7 +448,7 @@ func tableBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int)
 		return outputChunks, index, err
 	}
 
-	chunksContent, err = KeywordChunkHandle(chunksContent)
+	chunksContent, err = KeywordChunkHandle(chunksContent[1 : len(chunksContent)-1])
 	if err != nil {
 		log.Fatalln(err)
 		return outputChunks, index, err
@@ -457,8 +457,40 @@ func tableBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int)
 		Position: token.GetPosition(),
 		Id:       tokenChunks[1].GetValue(),
 	}
-	log.Println("##########", chunksContent)
-	tableChunk.Cells = append(tableChunk.Cells, chunksContent)
+
+	row := []Chunk{}
+	for i := 0; i < len(chunksContent); i++ {
+		chunk := chunksContent[i]
+		if keywordChunk, ok := chunk.(*KeywordChunk); ok && keywordChunk.Keyword == TableCellDelimiterKeyword {
+			continue //ignore it
+		}
+		if plainTextChunk, ok := chunk.(*PlainTextChunk); ok {
+			firstLine, restLine, err := plainTextChunk.FirstLineRestLines()
+			if err != nil {
+				return newOutputChunks, index, err
+			}
+			//empty line is ignored
+			if len(strings.Trim(firstLine.GetValue(), BlankChars)) > 0 {
+				row = append(row, firstLine)
+			}
+
+			if restLine == nil {
+				continue
+
+			}
+			if len(row) > 0 {
+				tableChunk.Cells = append(tableChunk.Cells, row)
+			}
+
+			row = []Chunk{}
+			if len(strings.Trim(restLine.GetValue(), BlankChars)) > 0 {
+				row = append(row, restLine)
+			}
+		}
+	}
+	if len(row) > 0 {
+		tableChunk.Cells = append(tableChunk.Cells, row)
+	}
 
 	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
 		Keyword:  token.GetValue(),
@@ -582,7 +614,7 @@ func consumeEmbracedBlock(inputChunks []Chunk, index int) (chunks []Chunk, newIn
 	}
 	leftBraceChunk, ok := inputChunks[index].(*MetaCharChunk)
 	if !ok || leftBraceChunk.GetValue() != LeftBraceChar {
-		log.Println(errExpectLBrace)
+
 		return nil, index, errExpectLBrace
 	}
 

@@ -18,6 +18,9 @@ var (
 	gListItemTemplate   *template.Template
 	gAnchorTemplate     *template.Template
 	gReferToTemplate    *template.Template
+	gTableTemplate      *template.Template
+	gTableRowTemplate   *template.Template
+	gTableCellTemplate  *template.Template
 
 	gInlineRenderMode bool
 )
@@ -34,6 +37,9 @@ func init() {
 	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>` + "\n")
 	gAnchorTemplate, _ = template.New("Anchor").Parse(`<a id="{{.Id}}" class="anchor">{{.Value}}</a>`)
 	gReferToTemplate, _ = template.New("ReferTo").Parse(`<a class="referto" href="#{{.Id}}">{{.Id}}</a>`)
+	gTableTemplate, _ = template.New("Table").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><table>{{.Content}}</table>` + "\n")
+	gTableRowTemplate, _ = template.New("TableRow").Parse(`<tr>{{.}}</tr>` + "\n")
+	gTableCellTemplate, _ = template.New("TableCell").Parse(`<td>{{.}}</td>`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -215,6 +221,35 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case TableKeyword:
+		tableChunk := keywordChunk.Children[0].(*TableChunk)
+		var rowBuf bytes.Buffer
+		var tableBuf bytes.Buffer
+		for row := 0; row < len(tableChunk.Cells); row++ {
+			rowChunks := tableChunk.Cells[row]
+			var cellBuf bytes.Buffer
+			for col := 0; col < len(rowChunks); col++ {
+				cellChunk := rowChunks[col]
+
+				err := gTableCellTemplate.Execute(&cellBuf, cellChunk.GetValue())
+				if err != nil {
+					return text, err
+				}
+			}
+
+			err := gTableRowTemplate.Execute(&rowBuf, cellBuf.String())
+			if err != nil {
+				return text, err
+			}
+
+		}
+		err := gTableTemplate.Execute(&tableBuf, struct{ Id, Caption, Content string }{tableChunk.Id, tableChunk.Caption, rowBuf.String()})
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+		return tableBuf.String(), nil
+
 	default:
 		panic("not implemented")
 	}
