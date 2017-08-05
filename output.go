@@ -33,15 +33,15 @@ func init() {
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
-	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
-	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
+	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
+	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
 	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>` + "\n")
 	gAnchorTemplate, _ = template.New("Anchor").Parse(`<a id="{{.Id}}" class="anchor">{{.Value}}</a>`)
 	gReferToTemplate, _ = template.New("ReferTo").Parse(`<a class="referto" href="#{{.Id}}">{{.Id}}</a>`)
-	gTableTemplate, _ = template.New("Table").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><table>{{.Content}}</table>` + "\n")
+	gTableTemplate, _ = template.New("Table").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><table>{{.Content}}</table>` + "\n")
 	gTableRowTemplate, _ = template.New("TableRow").Parse(`<tr>{{.}}</tr>` + "\n")
 	gTableCellTemplate, _ = template.New("TableCell").Parse(`<td>{{.}}</td>`)
-	gImageTemplate, _ = template.New("Image").Parse(`<p><a id="{{.Id}}" class="caption">{{.Caption}}</a></p><img src="{{.Src}}" alt="{{.Caption}}">`)
+	gImageTemplate, _ = template.New("Image").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><img src="{{.Src}}" alt="{{.Caption}}">`)
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -225,7 +225,7 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 				return text, err
 			}
 		}
-		err = gListTemplate.Execute(&buf, struct{ Id, Caption, ListType, Value string }{listChunk.Id, listChunk.Caption, listChunk.ListType, tmpBuf.String()})
+		err = gListTemplate.Execute(&buf, struct{ Id, Caption, Numbering, ListType, Value string }{listChunk.Id, listChunk.Caption, listChunk.Numbering, listChunk.ListType, tmpBuf.String()})
 		if err != nil {
 			log.Println(err)
 			return text, err
@@ -252,7 +252,7 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			}
 
 		}
-		err := gTableTemplate.Execute(&buf, struct{ Id, Caption, Content string }{tableChunk.Id, tableChunk.Caption, rowBuf.String()})
+		err := gTableTemplate.Execute(&buf, struct{ Id, Caption, Numbering, Content string }{tableChunk.Id, tableChunk.Caption, tableChunk.Numbering, rowBuf.String()})
 		if err != nil {
 			log.Println(err)
 			return text, err

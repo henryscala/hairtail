@@ -52,6 +52,14 @@ type WithIdCaption interface {
 	WithCaption
 }
 
+type withNumbering interface {
+	SetNumbering(c string)
+}
+type WithIdCaptionNumbering interface {
+	WithIdCaption
+	withNumbering
+}
+
 // Chunk denotes a block of text, the block may be length 1 to n in bytes
 type Chunk interface {
 	GetPosition() int
@@ -115,6 +123,11 @@ func ParseChunks(input string) ([]Chunk, error) {
 		return chunks, err
 	}
 	chunks, err = SectionChunkHandle(chunks)
+	if err != nil {
+		log.Fatalln(err)
+		return chunks, err
+	}
+	chunks, err = ChunkWithNumberingHandle(chunks)
 	if err != nil {
 		log.Fatalln(err)
 		return chunks, err
@@ -192,6 +205,28 @@ func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 
 	}
 
+	return inputChunks, nil
+}
+
+//Chunk with numbering handle
+func ChunkWithNumberingHandle(inputChunks []Chunk) ([]Chunk, error) {
+	numberingMap := make(map[string]int)
+
+	for _, chunk := range inputChunks {
+		keywordChunk, ok := chunk.(*KeywordChunk)
+		if !ok {
+			continue
+		}
+		if gChunkWithCaptionMap[keywordChunk.Keyword] {
+			chunkWithIdCaptionNumbering := keywordChunk.Children[0].(WithIdCaptionNumbering)
+			//only chunks that the caption has been set, we set numbering for them
+			if len(chunkWithIdCaptionNumbering.GetCaption()) > 0 {
+				numberingMap[keywordChunk.Keyword]++
+				prefix := getCaptionPrefix(keywordChunk.Keyword)
+				chunkWithIdCaptionNumbering.SetNumbering(prefix + strconv.Itoa(numberingMap[keywordChunk.Keyword]) + " ")
+			}
+		}
+	}
 	return inputChunks, nil
 }
 

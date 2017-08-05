@@ -6,10 +6,11 @@ import (
 
 // BlockCodeChunk denotes a block of code
 type BlockCodeChunk struct {
-	Position int
-	Id       string
-	Caption  string //optional
-	Value    string
+	Position  int
+	Id        string
+	Caption   string //optional
+	Numbering string //optional Numbering before Caption
+	Value     string
 }
 
 // String implements the Stringer interface
@@ -43,4 +44,7 @@ func (p *BlockCodeChunk) GetCaption() string {
 
 func (p *BlockCodeChunk) SetCaption(c string) {
 	p.Caption = c
+}
+func (p *BlockCodeChunk) SetNumbering(c string) {
+	p.Numbering = c
 }

@@ -10,11 +10,12 @@ type ListItem struct {
 
 // ListChunk denotes a order/bullet list
 type ListChunk struct {
-	Position int
-	ListType string
-	Id       string
-	Caption  string //optional
-	Items    []*ListItem
+	Position  int
+	ListType  string
+	Id        string
+	Caption   string //optional
+	Numbering string //optional Numbering before Caption
+	Items     []*ListItem
 }
 
 // String implements the Stringer interface
@@ -47,4 +48,8 @@ func (p *ListChunk) GetCaption() string {
 
 func (p *ListChunk) SetCaption(c string) {
 	p.Caption = c
+}
+
+func (p *ListChunk) SetNumbering(c string) {
+	p.Numbering = c
 }

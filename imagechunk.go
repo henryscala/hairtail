@@ -6,10 +6,11 @@ import (
 
 // ImageChunk denotes table
 type ImageChunk struct {
-	Position int
-	Id       string
-	Caption  string //optional
-	Src      string
+	Position  int
+	Id        string
+	Caption   string //optional
+	Numbering string //optional Numbering before Caption
+	Src       string
 }
 
 // String implements the Stringer interface
@@ -43,4 +44,8 @@ func (p *ImageChunk) GetCaption() string {
 
 func (p *ImageChunk) SetCaption(c string) {
 	p.Caption = c
+}
+
+func (p *ImageChunk) SetNumbering(c string) {
+	p.Numbering = c
 }

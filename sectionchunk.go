@@ -36,3 +36,6 @@ func (p *SectionChunk) GetValue() string {
 	return p.Caption
 
 }
+func (p *SectionChunk) SetNumbering(c string) {
+	p.Numbering = c
+}
