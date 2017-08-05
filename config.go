@@ -5,7 +5,9 @@ import (
 )
 
 type Config struct {
-	Language string //en,cn
+	Language      string //en,cn
+	GenerateTitle bool   //main title and sub title
+	GenerateMeta  bool   //create date, modify date, keywords
 }
 
 var GConfig = Config{

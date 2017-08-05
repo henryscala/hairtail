@@ -30,16 +30,18 @@ Efferency is not the first important thing. There may be several passes while ha
 ## TODO
 [] Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.
 
-[done] Generate Table
+[x] Generate Table
 
 [] command line argument to specify a html template to put renderred content in
 
-[done] Generate List that may be nested
+[x] Generate List that may be nested
 
 [] generate index including figure, toc, list, table, block-code 
+
+[] generate Title, SubTitle, CreateDate, ModifyDate, Keywords
 
 [] python
 
 [] inline tex and block tex 
 
-[] numbering table, block-code, list, figure 
+[x] numbering table, block-code, list, figure 
