@@ -53,3 +53,6 @@ func (p *ListChunk) SetCaption(c string) {
 func (p *ListChunk) SetNumbering(c string) {
 	p.Numbering = c
 }
+func (p ListChunk) GetNumbering() string {
+	return p.Numbering
+}

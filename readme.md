@@ -28,20 +28,25 @@ Efferency is not the first important thing. There may be several passes while ha
 \r##{raw text inside, which may be multiple line}##, the number of # is [0-n]. The intention is that inside the brace, no escape is required. 
 
 ## TODO
-[] Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.
 
 [x] Generate Table
 
-[] command line argument to specify a html template to put renderred content in
+[x] command line argument to specify a html template to put renderred content in
 
 [x] Generate List that may be nested
 
-[] generate index including figure, toc, list, table, block-code 
+[x] generate section index 
 
-[] generate Title, SubTitle, CreateDate, ModifyDate, Keywords
+[x] generate figure index, order-list-index, bullet-list-index, table index, block-code index  
+
+[] generate Title, SubTitle, CreateDate, ModifyDate, Keywords, author 
 
 [] python
 
 [] inline tex and block tex 
 
 [x] numbering table, block-code, list, figure 
+
+[] For ill-formed document, output user friendly prompt 
+
+[] Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.

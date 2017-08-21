@@ -82,21 +82,23 @@ sub_title : '\\sub-title' string LINE_END ;
 
 author : '\\author' string LINE_END ; 
 
-chapter_index : '\\toc' ;
-
-figure_index : '\\figure-index' ;
-
-table_index : '\\table-index' ;
-
-list_index : '\\list-index' ; 
-
-code_index : '\\code-index' ; 
-
 create_date :'\\create-date' string LINE_END ;
 
 modify_date :'\\modify-date' string LINE_END ;
 
 keywords :'\\keywords' string (',' string)* LINE_END ; 
+
+section_index : '\\toc' ;
+
+image_index : '\\image-index' ;
+
+table_index : '\\table-index' ;
+
+order_list_index : '\\order-list-index' ; 
+
+bullet_list_index : '\\bullet-list-index' ; 
+
+code_index : '\\code-index' ; 
 
 section_header :  SECTION_MARK SECTION_LEVEL? (LBRACE ID RBRACE) string LINE_END ; 
 

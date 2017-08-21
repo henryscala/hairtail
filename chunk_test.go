@@ -16,12 +16,13 @@ func TestParseChunks(t *testing.T) {
 		"nestlist.txt",
 		"section.txt",
 		"table.txt",
+		"index.txt",
 	}
-
+	gConfig.TemplateFile = "template.html"
 	for _, file := range inputFiles {
 		outputFilePath := filepath.Join("test", fmt.Sprintf("%s%s", strings.TrimSuffix(file, filepath.Ext(file)), ".html"))
 		inputFilePath := filepath.Join("test", file)
-		err := Compile(inputFilePath, outputFilePath)
+		err := CompileFile(inputFilePath, outputFilePath)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -7,21 +7,23 @@ import (
 )
 
 var (
-	gSectionTemplate    *template.Template
-	gParagraphTemplate  *template.Template
-	gEmphasisTemplate   *template.Template
-	gStrongTemplate     *template.Template
-	gHyperLinkTemplate  *template.Template
-	gInlineCodeTemplate *template.Template
-	gBlockCodeTemplate  *template.Template
-	gListTemplate       *template.Template
-	gListItemTemplate   *template.Template
-	gAnchorTemplate     *template.Template
-	gReferToTemplate    *template.Template
-	gTableTemplate      *template.Template
-	gTableRowTemplate   *template.Template
-	gTableCellTemplate  *template.Template
-	gImageTemplate      *template.Template
+	gSectionTemplate      *template.Template
+	gParagraphTemplate    *template.Template
+	gEmphasisTemplate     *template.Template
+	gStrongTemplate       *template.Template
+	gHyperLinkTemplate    *template.Template
+	gInlineCodeTemplate   *template.Template
+	gBlockCodeTemplate    *template.Template
+	gListTemplate         *template.Template
+	gListItemTemplate     *template.Template
+	gAnchorTemplate       *template.Template
+	gReferToTemplate      *template.Template
+	gTableTemplate        *template.Template
+	gTableRowTemplate     *template.Template
+	gTableCellTemplate    *template.Template
+	gImageTemplate        *template.Template
+	gSectionIndexTemplate *template.Template
+	gGlobalIndexTemplate  *template.Template //to generate index for entities other than section
 
 	gInlineRenderMode bool
 )
@@ -42,6 +44,9 @@ func init() {
 	gTableRowTemplate, _ = template.New("TableRow").Parse(`<tr>{{.}}</tr>` + "\n")
 	gTableCellTemplate, _ = template.New("TableCell").Parse(`<td>{{.}}</td>`)
 	gImageTemplate, _ = template.New("Image").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><img src="{{.Src}}" alt="{{.Caption}}">`)
+
+	gGlobalIndexTemplate, _ = template.New("GlobalIndex").Parse(`<p><a href="#{{.Id}}">{{.Numbering}} {{.Caption}}</a></p>` + "\n")
+	gSectionIndexTemplate, _ = template.New("SectionIndex").Parse(`<p><a href="#{{.Id}}">{{.Numbering}} {{.Caption}}</a></p>` + "\n")
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -257,6 +262,18 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case SectionIndexKeyword:
+		return gDoc.SectionIndex, nil
+	case ImageIndexKeyword:
+		return gDoc.ImageIndex, nil
+	case TableIndexKeyword:
+		return gDoc.TableIndex, nil
+	case OrderListIndexKeyword:
+		return gDoc.OrderListIndex, nil
+	case BulletListIndexKeyword:
+		return gDoc.BulletListIndex, nil
+	case CodeIndexKeyword:
+		return gDoc.CodeIndex, nil
 
 	default:
 		log.Fatal("not implemented")

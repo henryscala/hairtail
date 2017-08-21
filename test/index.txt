@@ -1,0 +1,123 @@
+main index
+\toc
+
+image index 
+\image-index
+
+table index 
+\table-index
+
+order list index 
+\order-list-index
+
+bullet list index 
+\bullet-list-index
+
+code block index  
+\code-index
+
+\h{h1-1} h1 example 
+para graph level 1
+
+para graph level 1
+
+para graph level 1
+
+below is a ordered list. 
+\caption{first-ol}{optional caption for first-ol}
+\ol{first-ol}{
+	\- cat
+	\- elephant
+	\- dog 
+}
+
+below is a bullet list. 
+\caption{first-ul}{optional caption for first-ul}
+\ul{first-ul}{ 
+	\- asia 
+	\- europe 
+	\- america 
+	\- africa 
+}
+
+\h2{h2-1} h2 example 
+para graph level 2 
+
+para graph level 2 
+
+\caption{image-example1}{example1 of a image from w3c}
+\image{image-example1}{http://www.w3school.com.cn/i/eg_tulip.jpg}
+
+para graph level 2 
+
+\caption{code-list-1}{code list example 1}	
+this is block code \code{code-list-1}{
+		println 1
+		println 2 
+    }
+	
+\caption {table-id1}{optional caption for table 1}
+\table{table-id1}{ 
+	name \d score
+	henry \d 100
+	 
+	dily \d 99 
+	ruby \d 98 
+}	
+	
+\h2{h2-2} h2 example 
+para graph level 2 
+
+\caption{image-example2}{example2  of a image from w3c}
+\image{image-example2}{http://www.w3school.com.cn/i/eg_tulip.jpg}
+
+para graph level 2 
+
+para graph level 2 
+
+\h{h1-2} h1 example 2 
+
+below is a ordered list. 
+\caption{first-ol-2}{optional caption for first-ol2}
+\ol{first-ol-2}{
+	\- cat
+	\- elephant
+	\- dog 
+}
+
+below is a bullet list. 
+\caption{first-ul-2}{optional caption for first-ul2}
+\ul{first-ul-2}{ 
+	\- asia 
+	\- europe 
+	\- america 
+	\- africa 
+}
+
+para graph level 1
+
+para graph level 1
+
+para graph level 1
+
+\caption {table-id2}{optional caption for table 2}
+\table{table-id2}{ 
+	name \d score
+	henry \d 100
+	 
+	dily \d 99 
+	ruby \d 98 
+}	
+
+\h2{h2-2-2} h2 example 2-2 
+para graph level 2 
+
+para graph level 2 
+
+\caption{code-list-2}{code list example 1}	
+this is block code 
+\code{code-list-2}{
+		println 1
+		println 2 
+}
+

@@ -19,4 +19,5 @@ hairtail
 
 hairtail.exe 
 
-*.html 
+test/*.html 
+output.html

@@ -48,3 +48,6 @@ func (p *BlockCodeChunk) SetCaption(c string) {
 func (p *BlockCodeChunk) SetNumbering(c string) {
 	p.Numbering = c
 }
+func (p BlockCodeChunk) GetNumbering() string {
+	return p.Numbering
+}

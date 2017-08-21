@@ -39,3 +39,6 @@ func (p *SectionChunk) GetValue() string {
 func (p *SectionChunk) SetNumbering(c string) {
 	p.Numbering = c
 }
+func (p SectionChunk) GetNumbering() string {
+	return p.Numbering
+}

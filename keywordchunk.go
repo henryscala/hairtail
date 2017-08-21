@@ -81,7 +81,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = imageBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-			case TableCellDelimiterKeyword, ListItemMark, ChapterIndexKeyword, FigureIndexKeyword, TableIndexKeyword, ListIndexKeyword, CodeIndexKeyword:
+			case TableCellDelimiterKeyword, ListItemMark, SectionIndexKeyword, ImageIndexKeyword, TableIndexKeyword, OrderListIndexKeyword, BulletListIndexKeyword, CodeIndexKeyword:
 				outputChunks, index, err = simpleKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case AnchorBlock:
 				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)

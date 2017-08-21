@@ -1,4 +1,9 @@
+
 \a{top}{top of article}
+
+table of content of this document 
+\toc 
+
 \h{misc} miscelaneous 
 
 \h2{license} license  

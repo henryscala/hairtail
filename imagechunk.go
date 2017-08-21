@@ -49,3 +49,6 @@ func (p *ImageChunk) SetCaption(c string) {
 func (p *ImageChunk) SetNumbering(c string) {
 	p.Numbering = c
 }
+func (p ImageChunk) GetNumbering() string {
+	return p.Numbering
+}

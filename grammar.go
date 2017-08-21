@@ -21,7 +21,6 @@ const (
 	CaptionKeyword        = "caption"
 
 	//section
-	BlockCode      string = "code"
 	SectionHeader  string = "h"
 	SectionHeader1 string = "h1"
 	SectionHeader2 string = "h2"
@@ -30,6 +29,7 @@ const (
 	SectionHeader5 string = "h5"
 	SectionHeader6 string = "h6"
 
+	BlockCode    string = "code"
 	OrderList    string = "ol"
 	BulletList   string = "ul"
 	ListItemMark string = "-"
@@ -46,11 +46,12 @@ const (
 	KeywordsKeyword   = "keywords"
 
 	//index
-	ChapterIndexKeyword = "toc"
-	FigureIndexKeyword  = "figure-index"
-	TableIndexKeyword   = "table-index"
-	ListIndexKeyword    = "list-index"
-	CodeIndexKeyword    = "code-index"
+	SectionIndexKeyword    = "toc"
+	ImageIndexKeyword      = "image-index"
+	TableIndexKeyword      = "table-index"
+	OrderListIndexKeyword  = "order-list-index"
+	BulletListIndexKeyword = "bullet-list-index"
+	CodeIndexKeyword       = "code-index"
 )
 
 var (

@@ -48,3 +48,6 @@ func (p *TableChunk) SetCaption(c string) {
 func (p *TableChunk) SetNumbering(c string) {
 	p.Numbering = c
 }
+func (p TableChunk) GetNumbering() string {
+	return p.Numbering
+}

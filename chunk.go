@@ -54,6 +54,7 @@ type WithIdCaption interface {
 
 type withNumbering interface {
 	SetNumbering(c string)
+	GetNumbering() string
 }
 type WithIdCaptionNumbering interface {
 	WithIdCaption
@@ -134,6 +135,7 @@ func ParseChunks(input string) ([]Chunk, error) {
 	}
 
 	gInlineRenderMode = true
+	//first render inlineChunk, so that there is not extra <p> around inlineChunk
 	chunks, err = InlineChunkListRender(chunks)
 	if err != nil {
 		log.Fatalln(err)
@@ -197,20 +199,30 @@ func SectionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 		}
 		sort.Ints(levels)
 	}
+
+	var bufSectionIndex bytes.Buffer
+
 	for _, sectionChunk := range sectionChunkList {
 		level := sectionChunk.Level
 		resetLevelLowerThan(level)
 		levelNumberingMap[level]++
+		//generate numbering for this section
 		sectionChunk.Numbering = calcNumbering(level)
-
+		//generate index for the whole doc
+		err := gSectionIndexTemplate.Execute(&bufSectionIndex, sectionChunk)
+		if err != nil {
+			return nil, err
+		}
 	}
+	gDoc.SectionIndex = bufSectionIndex.String()
 
 	return inputChunks, nil
 }
 
 //Chunk with numbering handle
 func ChunkWithNumberingHandle(inputChunks []Chunk) ([]Chunk, error) {
-	numberingMap := make(map[string]int)
+	numberingMap := make(map[string]int)       //to generate numbering
+	indexMap := make(map[string]*bytes.Buffer) //to generate index
 
 	for _, chunk := range inputChunks {
 		keywordChunk, ok := chunk.(*KeywordChunk)
@@ -223,10 +235,42 @@ func ChunkWithNumberingHandle(inputChunks []Chunk) ([]Chunk, error) {
 			if len(chunkWithIdCaptionNumbering.GetCaption()) > 0 {
 				numberingMap[keywordChunk.Keyword]++
 				prefix := getCaptionPrefix(keywordChunk.Keyword)
-				chunkWithIdCaptionNumbering.SetNumbering(prefix + strconv.Itoa(numberingMap[keywordChunk.Keyword]) + " ")
+				//set numbering
+				chunkWithIdCaptionNumbering.SetNumbering(prefix + " " + strconv.Itoa(numberingMap[keywordChunk.Keyword]) + ": ")
+
+				//generate index for this type
+				buf := indexMap[keywordChunk.Keyword]
+				if nil == buf {
+					buf = new(bytes.Buffer)
+					indexMap[keywordChunk.Keyword] = buf
+				}
+				err := gGlobalIndexTemplate.Execute(buf, chunkWithIdCaptionNumbering)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
+
+	//set indices to global doc obj
+	for _, keyword := range gChunkWithCaptionList {
+		buf := indexMap[keyword]
+		if buf != nil {
+			switch keyword {
+			case OrderList:
+				gDoc.OrderListIndex = buf.String()
+			case BulletList:
+				gDoc.BulletListIndex = buf.String()
+			case TableKeyword:
+				gDoc.TableIndex = buf.String()
+			case BlockCode:
+				gDoc.CodeIndex = buf.String()
+			case ImageKeyword:
+				gDoc.ImageIndex = buf.String()
+			}
+		}
+	}
+
 	return inputChunks, nil
 }
 
