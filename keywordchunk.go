@@ -84,7 +84,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = inlineTexBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-			case TableCellDelimiterKeyword, ListItemMark, SectionIndexKeyword, ImageIndexKeyword, TableIndexKeyword, OrderListIndexKeyword, BulletListIndexKeyword, CodeIndexKeyword:
+			case TableCellDelimiterKeyword, ListItemMark, SectionIndexKeyword, ImageIndexKeyword, TableIndexKeyword, OrderListIndexKeyword, BulletListIndexKeyword, MathIndexKeyword, CodeIndexKeyword:
 				outputChunks, index, err = simpleKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case AnchorBlock:
 				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)
@@ -94,6 +94,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = metaKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case BlockCode:
 				outputChunks, index, err = blockCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case BlockTex:
+				outputChunks, index, err = blockTexBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case SectionHeader, SectionHeader1, SectionHeader2, SectionHeader3,
 				SectionHeader4, SectionHeader5, SectionHeader6:
 				outputChunks, index, err = sectionBlockHandle(token[0], inputChunks, outputChunks, newIndex)
@@ -375,6 +377,7 @@ func blockCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index 
 		outputChunks = append(outputChunks, keywordChunk)
 		newIndex = newIndex1
 	} else {
+		newIndex = ignoreBlank(inputChunks, newIndex)
 		//BlockCode content may be either EmbracedBlock or RawTextBlock
 		if newIndex >= len(inputChunks) {
 			log.Fatalln(errIndexOutOfBound)
@@ -400,6 +403,44 @@ func blockCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index 
 		newIndex++
 
 	}
+	return outputChunks, newIndex, nil
+}
+
+func blockTexBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+	tokenChunks, newIndex, err := consumeEmbracedToken(inputChunks, index)
+
+	if err != nil {
+		log.Fatalln(err)
+		return outputChunks, index, err
+	}
+
+	newIndex = ignoreBlank(inputChunks, newIndex)
+
+	//BlockCode content must be RawTextBlock
+	if newIndex >= len(inputChunks) {
+		log.Fatalln(errIndexOutOfBound)
+		return outputChunks, index, errIndexOutOfBound
+	}
+	rawTextChunk, ok := inputChunks[newIndex].(*RawTextChunk)
+
+	if !ok {
+		log.Fatalln(errExpectRawText)
+		return outputChunks, index, errExpectRawText
+	}
+
+	blockTexChunk := &BlockTexChunk{
+		Position: token.GetPosition(),
+		Id:       tokenChunks[1].GetValue(),
+		Value:    rawTextChunk.GetValue(),
+	}
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{blockTexChunk},
+	}
+
+	outputChunks = append(outputChunks, keywordChunk)
+	newIndex++
+
 	return outputChunks, newIndex, nil
 }
 
@@ -627,7 +668,6 @@ func ignoreBlank(inputChunks []Chunk, index int) (newIndex int) {
 	}
 	newIndex = index
 	return
-
 }
 
 func consumeListItem(inputChunks []Chunk, index int) (item *ListItem, newIndex int, err error) {

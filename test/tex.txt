@@ -1,7 +1,10 @@
+table of content 
+
+\math-index 
 
 In this article I will introduce you inline tex and block tex 
 
-\h{h1} inline tex 
+\h{inline-tex} inline tex 
 
 有一个故事大家耳熟能详。数学家高斯小学的时候老师让同学们计算1 + 2 + 3 + ... + 100的值。
 老师期待可以让同学们专心做题，安静长一点的时间。可高斯很快给出了结果5050。现在我们知道用等差数列求和公式
@@ -9,5 +12,22 @@ In this article I will introduce you inline tex and block tex
 永不停歇地加下去直到无穷，结果是多少呢？直观的结果应该是无穷大\t \r##{ \infty }##。
 可这里我告诉你答案是\t \r###{- \frac {1} {12} }### 。下面给出证明。</p>
 
+\h{block-tex} block tex 
+
+\tex{add1infinity} \r#{ 
+	1 + 2 + 3 + ... = - \frac {1} {12} \tag{1} 
+}#
+
+follow case is block tex with caption 
+
+\caption{add1and-1}{block tex with caption 1}	
+\tex{add1and-1} \r#{
+1 - 1 + 1 - 1 + 1 - ... = \frac {1} {2} \tag {2}
+}# 
+
+\caption{add1and-1-1}{block tex with caption 2}	
+\tex{add1and-1-1} \r#{
+1 - 1 + 1 - 1 + 1 - ... = \frac {1} {2} \tag {2}
+}# 
 
 

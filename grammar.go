@@ -51,6 +51,7 @@ const (
 	OrderListIndexKeyword  = "order-list-index"
 	BulletListIndexKeyword = "bullet-list-index"
 	CodeIndexKeyword       = "code-index"
+	MathIndexKeyword       = "math-index"
 )
 
 var (
@@ -65,7 +66,7 @@ var (
 	}
 
 	gChunkWithCaptionList = []string{
-		OrderList, BulletList, TableKeyword, BlockCode, ImageKeyword,
+		OrderList, BulletList, TableKeyword, BlockCode, ImageKeyword, BlockTex,
 	}
 	gChunkWithCaptionMap = make(map[string]bool)
 

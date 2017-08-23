@@ -25,6 +25,7 @@ var gKeywordNameCn = map[string]string{
 	BulletList:   "无序列表",
 	TableKeyword: "表格",
 	BlockCode:    "代码",
+	BlockTex:     "数学公式",
 	ImageKeyword: "图",
 
 	AuthorKeyword:     "作者",
@@ -37,6 +38,7 @@ var gKeywordNameEn = map[string]string{
 	BulletList:   "Bullet-List",
 	TableKeyword: "Table",
 	BlockCode:    "Code",
+	BlockTex:     "Math",
 	ImageKeyword: "Figure",
 
 	AuthorKeyword:     "Author",

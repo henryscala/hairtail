@@ -100,6 +100,8 @@ bullet_list_index : '\\bullet-list-index' ;
 
 code_index : '\\code-index' ; 
 
+math_index : '\\math-index' ;
+
 section_header :  SECTION_MARK SECTION_LEVEL? (LBRACE ID RBRACE) string LINE_END ; 
 
 blocks : block* ; 

@@ -265,6 +265,8 @@ func ChunkWithNumberingHandle(inputChunks []Chunk) ([]Chunk, error) {
 				gDoc.TableIndex = buf.String()
 			case BlockCode:
 				gDoc.CodeIndex = buf.String()
+			case BlockTex:
+				gDoc.MathIndex = buf.String()
 			case ImageKeyword:
 				gDoc.ImageIndex = buf.String()
 			}

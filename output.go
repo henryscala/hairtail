@@ -14,6 +14,7 @@ var (
 	gHyperLinkTemplate    *template.Template
 	gInlineTexTemplate    *template.Template
 	gInlineCodeTemplate   *template.Template
+	gBlockTexTemplate     *template.Template
 	gBlockCodeTemplate    *template.Template
 	gListTemplate         *template.Template
 	gListItemTemplate     *template.Template
@@ -39,6 +40,7 @@ func init() {
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 	gInlineTexTemplate, _ = template.New("InlineTex").Parse(`<span class="inline-tex">\({{.}}\)</span>`) //need mathjax to support this
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
+	gBlockTexTemplate, _ = template.New("BlockTex").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><div class="math">\[{{.Value}}\]</div>` + "\n")
 	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
 	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
 	gListItemTemplate, _ = template.New("ListItem").Parse(`<li>{{.}}</li>` + "\n")
@@ -203,6 +205,13 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case BlockTex:
+		blockTexChunk := keywordChunk.Children[0].(*BlockTexChunk)
+		err = gBlockTexTemplate.Execute(&buf, blockTexChunk)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
 	case BlockCode:
 		blockCodeChunk := keywordChunk.Children[0].(*BlockCodeChunk)
 		err = gBlockCodeTemplate.Execute(&buf, blockCodeChunk)
@@ -292,6 +301,8 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 		return gDoc.BulletListIndex, nil
 	case CodeIndexKeyword:
 		return gDoc.CodeIndex, nil
+	case MathIndexKeyword:
+		return gDoc.MathIndex, nil
 
 	//different kind of meta data handling
 	case TitleKeyword:

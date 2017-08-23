@@ -37,7 +37,7 @@ Efferency is not the first important thing. There may be several passes while ha
 
 [x] generate section index 
 
-[x] generate figure index, order-list-index, bullet-list-index, table index, block-code index  
+[x] generate figure index, order-list-index, bullet-list-index, table index, block-code index, math index  
 
 [x] generate Title, SubTitle, CreateDate, ModifyDate, Keywords, author 
 
@@ -45,7 +45,7 @@ Efferency is not the first important thing. There may be several passes while ha
 
 [x] inline tex 
 
-[] block tex 
+[x] block tex 
 
 [] provide a default template, so that the output of all syntax elements(tables, code, etc) looks good 
 

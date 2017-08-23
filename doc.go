@@ -15,7 +15,8 @@ type Doc struct {
 	TableIndex,
 	OrderListIndex,
 	BulletListIndex,
-	CodeIndex string
+	CodeIndex,
+	MathIndex string
 
 	//Chunks                                            []Chunk
 }
