@@ -1,0 +1,18 @@
+\title meta data 
+\sub-title does meta data works? 
+
+\author Henry 
+
+\create-date 2012-07-07 \modify-date 2012-07-08
+
+\keywords meta, keyword, author
+
+
+the document verify meta data works in the output 
+
+the document verify meta data works in the output 
+
+the document verify meta data works in the output 
+
+the document verify meta data works in the output 
+

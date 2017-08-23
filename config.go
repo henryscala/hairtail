@@ -15,34 +15,44 @@ var gConfig = Config{
 	Language: "cn",
 }
 
-var gLanguageCaptionPrefix = map[string]map[string]string{
-	"cn": gCaptionPrefixCn,
-	"en": gCaptionPrefixEn,
+var gLanguageKeywordName = map[string]map[string]string{
+	"cn": gKeywordNameCn,
+	"en": gKeywordNameEn,
 }
 
-var gCaptionPrefixCn = map[string]string{
+var gKeywordNameCn = map[string]string{
 	OrderList:    "有序列表",
 	BulletList:   "无序列表",
 	TableKeyword: "表格",
 	BlockCode:    "代码",
 	ImageKeyword: "图",
+
+	AuthorKeyword:     "作者",
+	CreateDateKeyword: "创建日期",
+	ModifyDateKeyword: "修改日期",
+	KeywordsKeyword:   "关键词",
 }
-var gCaptionPrefixEn = map[string]string{
+var gKeywordNameEn = map[string]string{
 	OrderList:    "Ordered-List",
 	BulletList:   "Bullet-List",
 	TableKeyword: "Table",
 	BlockCode:    "Code",
 	ImageKeyword: "Figure",
+
+	AuthorKeyword:     "Author",
+	CreateDateKeyword: "Create-Date",
+	ModifyDateKeyword: "Modify-Date",
+	KeywordsKeyword:   "Keywords",
 }
 
-func getCaptionPrefix(keyword string) string {
-	prefixMap, ok := gLanguageCaptionPrefix[gConfig.Language]
+func getKeywordName(keyword string) string {
+	prefixMap, ok := gLanguageKeywordName[gConfig.Language]
 	if !ok {
-		log.Fatal("should not reach here ")
+		log.Fatal("not supported language")
 	}
 	prefix, ok := prefixMap[keyword]
 	if !ok {
-		log.Fatal("should not reach here")
+		log.Fatal("not supported keyword")
 	}
 	return prefix
 }

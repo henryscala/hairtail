@@ -17,6 +17,7 @@ var (
 	errExpectRawText     = errors.New("expect Raw Text")
 	errExpectListItem    = errors.New("expect List Item ")
 	errExpectChunkWithId = errors.New("expect chunk with specific Id ")
+	errNotImplemented    = errors.New("not implemented")
 )
 
 // KeywordChunk denotes meta char '\' followed by a token.
@@ -79,6 +80,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = hyperLinkBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case ImageKeyword:
 				outputChunks, index, err = imageBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case InlineTex:
+				outputChunks, index, err = inlineTexBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case TableCellDelimiterKeyword, ListItemMark, SectionIndexKeyword, ImageIndexKeyword, TableIndexKeyword, OrderListIndexKeyword, BulletListIndexKeyword, CodeIndexKeyword:
@@ -101,8 +104,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 			case CaptionKeyword:
 				outputChunks, index, err = captionBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			default:
-				log.Fatal("not implemented")
-				panic("not implemented")
+				log.Fatal(errNotImplemented)
 			}
 			if err != nil {
 				log.Fatalln(err)
@@ -292,6 +294,30 @@ func imageBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int)
 	return outputChunks, newIndex, nil
 }
 
+func inlineTexBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
+
+	//InlineTex content must be RawTextBlock
+	if index >= len(inputChunks) {
+		log.Fatalln(errIndexOutOfBound)
+		return outputChunks, index, errIndexOutOfBound
+	}
+	rawTextChunk, ok := inputChunks[index].(*RawTextChunk)
+	if !ok {
+		log.Fatalln(errExpectRawText)
+		return outputChunks, index, errExpectRawText
+	}
+
+	keywordChunk := &KeywordChunk{Position: token.GetPosition(),
+		Keyword:  token.GetValue(),
+		Children: []Chunk{rawTextChunk},
+	}
+
+	outputChunks = append(outputChunks, keywordChunk)
+	newIndex = index + 1
+
+	return outputChunks, newIndex, nil
+}
+
 func inlineCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index int) (newOutputChunks []Chunk, newIndex int, err error) {
 	chunks, newIndex1, err := consumeEmbracedBlock(inputChunks, index)
 	if err == nil {
@@ -402,6 +428,27 @@ func metaKeywordHandle(token Chunk, inputChunks, outputChunks []Chunk, index int
 		Keyword: token.GetValue(),
 		Value:   firstLineChunk.GetValue(),
 	}
+
+	//set meta info to the global doc
+	func(theDoc *Doc, metaKeyword *KeywordChunk) {
+		switch metaKeyword.Keyword {
+		case TitleKeyword:
+			theDoc.Title = metaKeyword.GetValue()
+		case SubTitleKeyword:
+			theDoc.SubTitle = metaKeyword.GetValue()
+		case AuthorKeyword:
+			theDoc.Author = metaKeyword.GetValue()
+		case CreateDateKeyword:
+			theDoc.CreateDate = metaKeyword.GetValue()
+		case ModifyDateKeyword:
+			theDoc.ModifyDate = metaKeyword.GetValue()
+		case KeywordsKeyword:
+			theDoc.Keywords = metaKeyword.GetValue()
+		default:
+			panic(errNotImplemented)
+		}
+	}(&gDoc, keywordChunk)
+
 	outputChunks = append(outputChunks, keywordChunk)
 	outputChunks = append(outputChunks, plainTextChunk)
 	newIndex = index + 1

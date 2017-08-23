@@ -43,24 +43,31 @@ func CompileFile(inputFile, outputFile string) error {
 		return err
 	}
 
-	templateFileContent, err := ioutil.ReadFile(gConfig.TemplateFile)
-	if err != nil {
-		return err
-	}
+	if gConfig.TemplateFile != "" {
+		templateFileContent, err := ioutil.ReadFile(gConfig.TemplateFile)
+		if err != nil {
+			return err
+		}
 
-	gTemplate, err = template.New("global").Parse(string(templateFileContent))
-	if err != nil {
-		return err
-	}
-	var buf bytes.Buffer
-	err = gTemplate.Execute(&buf, template.HTML(outputContent))
-	if err != nil {
-		return err
-	}
+		gTemplate, err = template.New("global").Parse(string(templateFileContent))
+		if err != nil {
+			return err
+		}
+		var buf bytes.Buffer
+		err = gTemplate.Execute(&buf, template.HTML(outputContent))
+		if err != nil {
+			return err
+		}
 
-	err = ioutil.WriteFile(outputFile, buf.Bytes(), 0666)
-	if err != nil {
-		log.Println(err)
+		err = ioutil.WriteFile(outputFile, buf.Bytes(), 0666)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		err = ioutil.WriteFile(outputFile, []byte(outputContent), 0666)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return nil
 }

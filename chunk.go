@@ -234,7 +234,7 @@ func ChunkWithNumberingHandle(inputChunks []Chunk) ([]Chunk, error) {
 			//only chunks that the caption has been set, we set numbering for them
 			if len(chunkWithIdCaptionNumbering.GetCaption()) > 0 {
 				numberingMap[keywordChunk.Keyword]++
-				prefix := getCaptionPrefix(keywordChunk.Keyword)
+				prefix := getKeywordName(keywordChunk.Keyword)
 				//set numbering
 				chunkWithIdCaptionNumbering.SetNumbering(prefix + " " + strconv.Itoa(numberingMap[keywordChunk.Keyword]) + ": ")
 

@@ -12,6 +12,7 @@ var (
 	gEmphasisTemplate     *template.Template
 	gStrongTemplate       *template.Template
 	gHyperLinkTemplate    *template.Template
+	gInlineTexTemplate    *template.Template
 	gInlineCodeTemplate   *template.Template
 	gBlockCodeTemplate    *template.Template
 	gListTemplate         *template.Template
@@ -24,6 +25,8 @@ var (
 	gImageTemplate        *template.Template
 	gSectionIndexTemplate *template.Template
 	gGlobalIndexTemplate  *template.Template //to generate index for entities other than section
+	gTitleTemplate        *template.Template
+	gMetaDataTemplate     *template.Template
 
 	gInlineRenderMode bool
 )
@@ -34,6 +37,7 @@ func init() {
 	gEmphasisTemplate, _ = template.New("Emphasis").Parse(`<em>{{.}}</em>`)
 	gStrongTemplate, _ = template.New("Strong").Parse(`<strong>{{.}}</strong>`)
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
+	gInlineTexTemplate, _ = template.New("InlineTex").Parse(`<span class="inline-tex">\({{.}}\)</span>`) //need mathjax to support this
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
 	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
 	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
@@ -44,9 +48,10 @@ func init() {
 	gTableRowTemplate, _ = template.New("TableRow").Parse(`<tr>{{.}}</tr>` + "\n")
 	gTableCellTemplate, _ = template.New("TableCell").Parse(`<td>{{.}}</td>`)
 	gImageTemplate, _ = template.New("Image").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><img src="{{.Src}}" alt="{{.Caption}}">`)
-
 	gGlobalIndexTemplate, _ = template.New("GlobalIndex").Parse(`<p><a href="#{{.Id}}">{{.Numbering}} {{.Caption}}</a></p>` + "\n")
 	gSectionIndexTemplate, _ = template.New("SectionIndex").Parse(`<p><a href="#{{.Id}}">{{.Numbering}} {{.Caption}}</a></p>` + "\n")
+	gTitleTemplate, _ = template.New("Title").Parse(`<h{{.Level}} class="title{{.Level}}">{{.Title}}</h{{.Level}}>` + "\n")
+	gMetaDataTemplate, _ = template.New("MetaData").Parse(`<span class="meta-data-name"><strong>{{.Name}}:</strong></span> <span class="meta-data-value">{{.Value}}</span>` + "\n")
 }
 
 func InlineChunkListRender(chunkList []Chunk) ([]Chunk, error) {
@@ -176,6 +181,17 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+	case InlineTex:
+		text, err = ChunkRender(keywordChunk.Children[0])
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+		err = gInlineTexTemplate.Execute(&buf, text)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
 	case InlineCode:
 		text, err = ChunkRender(keywordChunk.Children[0])
 		if err != nil {
@@ -262,6 +278,8 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			log.Println(err)
 			return text, err
 		}
+
+	//output different kind of index
 	case SectionIndexKeyword:
 		return gDoc.SectionIndex, nil
 	case ImageIndexKeyword:
@@ -275,9 +293,50 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 	case CodeIndexKeyword:
 		return gDoc.CodeIndex, nil
 
+	//different kind of meta data handling
+	case TitleKeyword:
+		err = gTitleTemplate.Execute(&buf, struct {
+			Level int
+			Title string
+		}{1, gDoc.Title})
+		if err != nil {
+			return text, err
+		}
+
+	case SubTitleKeyword:
+		err = gTitleTemplate.Execute(&buf, struct {
+			Level int
+			Title string
+		}{2, gDoc.SubTitle})
+		if err != nil {
+			return text, err
+		}
+
+	case AuthorKeyword:
+		err = gMetaDataTemplate.Execute(&buf, struct{ Name, Value string }{getKeywordName(AuthorKeyword), gDoc.Author})
+		if err != nil {
+			return text, err
+		}
+
+	case CreateDateKeyword:
+		err = gMetaDataTemplate.Execute(&buf, struct{ Name, Value string }{getKeywordName(CreateDateKeyword), gDoc.CreateDate})
+		if err != nil {
+			return text, err
+		}
+	case ModifyDateKeyword:
+		err = gMetaDataTemplate.Execute(&buf, struct{ Name, Value string }{getKeywordName(ModifyDateKeyword), gDoc.ModifyDate})
+		if err != nil {
+			return text, err
+		}
+	case KeywordsKeyword:
+		err = gMetaDataTemplate.Execute(&buf, struct{ Name, Value string }{getKeywordName(KeywordsKeyword), gDoc.Keywords})
+		if err != nil {
+			return text, err
+		}
+
 	default:
-		log.Fatal("not implemented")
-		panic("not implemented")
+		log.Fatal(errNotImplemented)
+		panic(errNotImplemented)
 	}
 	return buf.String(), nil
 }

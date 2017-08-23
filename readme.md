@@ -39,14 +39,24 @@ Efferency is not the first important thing. There may be several passes while ha
 
 [x] generate figure index, order-list-index, bullet-list-index, table index, block-code index  
 
-[] generate Title, SubTitle, CreateDate, ModifyDate, Keywords, author 
-
-[] python
-
-[] inline tex and block tex 
+[x] generate Title, SubTitle, CreateDate, ModifyDate, Keywords, author 
 
 [x] numbering table, block-code, list, figure 
 
-[] For ill-formed document, output user friendly prompt 
+[x] inline tex 
+
+[] block tex 
+
+[] provide a default template, so that the output of all syntax elements(tables, code, etc) looks good 
+
+[] python
+
+[] make some hard coded value configurable, e.g. prefix of image, table, etc. 
+
+[] make the output templates configurable. In this way, we may support multi output formats. 
+
+[] add `comment` keywords. content in it will not be shown, but in `<!-- -->` block  
+
+[] For ill-formed document, output user friendly error messages  
 
 [] Handle blank char. It should not be so strict. Blanks before or after some keyword or meta chars shall be ignored.

@@ -4,37 +4,36 @@ import (
 	"regexp"
 )
 
-var (
-	gTokenPattern     = regexp.MustCompile(`[a-zA-Z-_\.][a-zA-Z0-9-_\.]*`)
-	gParagraphDivider = regexp.MustCompile(`(\n\s*\n)|(\r\n\s*\r\n)`)
-)
-
+//supported grammar elements
 const (
-	//inline
-	EmphasisFormat string = "e"
-	StrongFormat   string = "s"
-	HyperLink      string = "w"
-	InlineCode     string = "c"
-	AnchorBlock    string = "a"
-	ReferToBlock   string = "k"
-	ImageKeyword          = "image"
-	CaptionKeyword        = "caption"
+	//inline element
+	EmphasisFormat = "e"
+	StrongFormat   = "s"
+	HyperLink      = "w"
+	InlineCode     = "c"
+	AnchorBlock    = "a"
+	ReferToBlock   = "k"
+	ImageKeyword   = "image"
+	CaptionKeyword = "caption"
+	InlineTex      = "t"
 
 	//section
-	SectionHeader  string = "h"
-	SectionHeader1 string = "h1"
-	SectionHeader2 string = "h2"
-	SectionHeader3 string = "h3"
-	SectionHeader4 string = "h4"
-	SectionHeader5 string = "h5"
-	SectionHeader6 string = "h6"
+	SectionHeader  = "h"
+	SectionHeader1 = "h1"
+	SectionHeader2 = "h2"
+	SectionHeader3 = "h3"
+	SectionHeader4 = "h4"
+	SectionHeader5 = "h5"
+	SectionHeader6 = "h6"
 
-	BlockCode    string = "code"
-	OrderList    string = "ol"
-	BulletList   string = "ul"
-	ListItemMark string = "-"
-
-	TableKeyword              = "table"
+	//Sections that may have caption and may be shown in specific index
+	BlockTex     = "tex"
+	BlockCode    = "code"
+	OrderList    = "ol"
+	BulletList   = "ul"
+	ListItemMark = "-"
+	TableKeyword = "table"
+	//sub element of Table
 	TableCellDelimiterKeyword = "d"
 
 	//meta
@@ -55,16 +54,33 @@ const (
 )
 
 var (
+	gTokenPattern     = regexp.MustCompile(`[a-zA-Z-_\.][a-zA-Z0-9-_\.]*`)
+	gParagraphDivider = regexp.MustCompile(`(\n\s*\n)|(\r\n\s*\r\n)`)
+)
+
+var (
 	gInlineFormatMap  = make(map[string]bool)
 	gInlineFormatList = []string{
-		EmphasisFormat, StrongFormat, HyperLink, InlineCode, AnchorBlock, ReferToBlock,
+		EmphasisFormat, StrongFormat, HyperLink, InlineCode, AnchorBlock, ReferToBlock, InlineTex,
 	}
+
 	gChunkWithCaptionList = []string{
 		OrderList, BulletList, TableKeyword, BlockCode, ImageKeyword,
 	}
 	gChunkWithCaptionMap = make(map[string]bool)
-	gSectionLevel        = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
+
+	gSectionLevel = map[string]int{SectionHeader: 1, SectionHeader1: 1, SectionHeader2: 2,
 		SectionHeader3: 3, SectionHeader4: 4, SectionHeader5: 5, SectionHeader6: 6}
+
+	gMetaInfoKeywordMap  = make(map[string]bool)
+	gMetaInfoKeywordList = []string{
+		TitleKeyword,
+		SubTitleKeyword,
+		AuthorKeyword,
+		CreateDateKeyword,
+		ModifyDateKeyword,
+		KeywordsKeyword,
+	}
 )
 
 func init() {
@@ -73,5 +89,8 @@ func init() {
 	}
 	for _, f := range gChunkWithCaptionList {
 		gChunkWithCaptionMap[f] = true
+	}
+	for _, f := range gMetaInfoKeywordList {
+		gMetaInfoKeywordMap[f] = true
 	}
 }
