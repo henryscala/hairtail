@@ -53,13 +53,15 @@ const (
 	TableCellDelimiterKeyword = "d"
 
 	//meta
-	TitleKeyword             = "title"
-	SubTitleKeyword          = "sub-title"
-	AuthorKeyword            = "author"
-	CreateDateKeyword        = "create-date"
-	ModifyDateKeyword        = "modify-date"
-	KeywordsKeyword          = "keywords"
-	IncludeKeyword    string = "include" //to include other document
+	TitleKeyword      = "title"
+	SubTitleKeyword   = "sub-title"
+	AuthorKeyword     = "author"
+	CreateDateKeyword = "create-date"
+	ModifyDateKeyword = "modify-date"
+	KeywordsKeyword   = "keywords"
+
+	//
+	IncludeKeyword string = "include" //to include other document
 
 	//index
 	SectionIndexKeyword    = "toc"
