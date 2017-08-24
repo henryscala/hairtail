@@ -6,7 +6,7 @@ import (
 
 type Config struct {
 	Language     string //en,cn
-	TemplateFile string // the template file with whole to put render result in
+	TemplateFile string // the template file with hole to put render result in
 	//GenerateTitle bool   //main title and sub title
 	//GenerateMeta  bool   //create date, modify date, keywords
 }

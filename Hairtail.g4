@@ -58,7 +58,7 @@ REFER_TO : '\\k' ; //refer to other keyword
 
 STRING : .+? ; 
 
-COMMENT : '\\#' ; 
+COMMENT : '\\--' ; 
 
 CAPTION : '\\caption'
 
@@ -85,6 +85,8 @@ author : '\\author' string LINE_END ;
 create_date :'\\create-date' string LINE_END ;
 
 modify_date :'\\modify-date' string LINE_END ;
+
+include :'\\include' string LINE_END ; //to import other document 
 
 keywords :'\\keywords' string (',' string)* LINE_END ; 
 
@@ -120,7 +122,7 @@ anchor_block : ANCHOR (LBRACE ID RBRACE) (LBRACE string RBRACE) ;
 
 index_block : INDEX (LBRACE string RBRACE) ; 
 
-inline_comment_block : COMMENT (LBRACE string RBRACE) ; 
+inline_comment_block : COMMENT (LBRACE string RBRACE) | raw_block; 
 
 hyper_link_block :  HYPER_LINK (LBRACE string RBRACE) (LBRACE string RBRACE) ; 
 
@@ -137,7 +139,7 @@ inline_block : emphasis_block
              | inline_code 
              | inline_tex
              | refer_to_block 
-             | inline_comment
+             | inline_comment_block
 			| anchor_block 
 			| index_block 
 			

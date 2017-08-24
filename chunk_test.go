@@ -19,6 +19,7 @@ func TestParseChunks(t *testing.T) {
 		"index.txt",
 		"meta.txt",
 		"tex.txt",
+		"include.txt",
 	}
 	gConfig.TemplateFile = "template.html"
 	for _, file := range inputFiles {

@@ -82,6 +82,8 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = imageBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case InlineTex:
 				outputChunks, index, err = inlineTexBlockHandle(token[0], inputChunks, outputChunks, newIndex)
+			case CommentKeyword:
+				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex) //note it reuses the inlineCodeBlockHandle
 			case InlineCode:
 				outputChunks, index, err = inlineCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case TableCellDelimiterKeyword, ListItemMark, SectionIndexKeyword, ImageIndexKeyword, TableIndexKeyword, OrderListIndexKeyword, BulletListIndexKeyword, MathIndexKeyword, CodeIndexKeyword:
@@ -90,7 +92,7 @@ func KeywordChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 				outputChunks, index, err = anchorBlockHandle(token[0], inputChunks, outputChunks, newIndex)
 			case ReferToBlock:
 				outputChunks, index, err = referToBlockHandle(token[0], inputChunks, outputChunks, newIndex)
-			case TitleKeyword, SubTitleKeyword, AuthorKeyword, CreateDateKeyword, ModifyDateKeyword, KeywordsKeyword:
+			case TitleKeyword, SubTitleKeyword, AuthorKeyword, CreateDateKeyword, ModifyDateKeyword, KeywordsKeyword, IncludeKeyword:
 				outputChunks, index, err = metaKeywordHandle(token[0], inputChunks, outputChunks, newIndex)
 			case BlockCode:
 				outputChunks, index, err = blockCodeBlockHandle(token[0], inputChunks, outputChunks, newIndex)
@@ -332,6 +334,7 @@ func inlineCodeBlockHandle(token Chunk, inputChunks, outputChunks []Chunk, index
 		newIndex = newIndex1
 
 	} else {
+		index = ignoreBlank(inputChunks, index)
 		//InlineCode content may be either EmbracedBlock or RawTextBlock
 		if index >= len(inputChunks) {
 			log.Fatalln(errIndexOutOfBound)
@@ -485,6 +488,8 @@ func metaKeywordHandle(token Chunk, inputChunks, outputChunks []Chunk, index int
 			theDoc.ModifyDate = metaKeyword.GetValue()
 		case KeywordsKeyword:
 			theDoc.Keywords = metaKeyword.GetValue()
+		case IncludeKeyword:
+			//do nothing here
 		default:
 			panic(errNotImplemented)
 		}

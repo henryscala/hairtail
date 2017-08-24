@@ -4,8 +4,23 @@ import (
 	"regexp"
 )
 
+const (
+	BlankChars string = " \r\n\t"
+	LineFeed   string = "\n"
+)
+
+//meta characters
+const (
+	EscapeChar     string = "\\"
+	LeftBraceChar  string = "{"
+	RightBraceChar string = "}"
+	FillerChar     string = "#"
+)
+
 //supported grammar elements
 const (
+	RawTextChar string = "r"
+
 	//inline element
 	EmphasisFormat = "e"
 	StrongFormat   = "s"
@@ -16,6 +31,7 @@ const (
 	ImageKeyword   = "image"
 	CaptionKeyword = "caption"
 	InlineTex      = "t"
+	CommentKeyword = "--" //it is able to comment out other grammar elements
 
 	//section
 	SectionHeader  = "h"
@@ -37,12 +53,13 @@ const (
 	TableCellDelimiterKeyword = "d"
 
 	//meta
-	TitleKeyword      = "title"
-	SubTitleKeyword   = "sub-title"
-	AuthorKeyword     = "author"
-	CreateDateKeyword = "create-date"
-	ModifyDateKeyword = "modify-date"
-	KeywordsKeyword   = "keywords"
+	TitleKeyword             = "title"
+	SubTitleKeyword          = "sub-title"
+	AuthorKeyword            = "author"
+	CreateDateKeyword        = "create-date"
+	ModifyDateKeyword        = "modify-date"
+	KeywordsKeyword          = "keywords"
+	IncludeKeyword    string = "include" //to include other document
 
 	//index
 	SectionIndexKeyword    = "toc"
@@ -60,9 +77,13 @@ var (
 )
 
 var (
+	//MetaChars contains all meta characters in slice
+	MetaChars = []string{EscapeChar, LeftBraceChar, RightBraceChar, FillerChar}
+	//MetaCharMap contains all meta characters in map to be lookup
+	MetaCharMap       = make(map[string]bool)
 	gInlineFormatMap  = make(map[string]bool)
 	gInlineFormatList = []string{
-		EmphasisFormat, StrongFormat, HyperLink, InlineCode, AnchorBlock, ReferToBlock, InlineTex,
+		EmphasisFormat, StrongFormat, HyperLink, InlineCode, CommentKeyword, AnchorBlock, ReferToBlock, InlineTex,
 	}
 
 	gChunkWithCaptionList = []string{
@@ -93,5 +114,8 @@ func init() {
 	}
 	for _, f := range gMetaInfoKeywordList {
 		gMetaInfoKeywordMap[f] = true
+	}
+	for _, c := range MetaChars {
+		MetaCharMap[c] = true
 	}
 }

@@ -5,40 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 )
-
-//meta characters
-const (
-	EscapeChar     string = "\\"
-	LeftBraceChar  string = "{"
-	RightBraceChar string = "}"
-	FillerChar     string = "#"
-)
-
-const (
-	BlankChars string = " \r\n\t"
-	LineFeed   string = "\n"
-)
-
-//keywords
-const (
-	RawTextChar string = "r"
-)
-
-var (
-	//MetaChars contains all meta characters in slice
-	MetaChars = []string{EscapeChar, LeftBraceChar, RightBraceChar, FillerChar}
-	//MetaCharMap contains all meta characters in map to be lookup
-	MetaCharMap = make(map[string]bool)
-)
-
-func init() {
-	for _, c := range MetaChars {
-		MetaCharMap[c] = true
-	}
-}
 
 type WithId interface {
 	GetId() string
@@ -118,6 +89,13 @@ func ParseChunks(input string) ([]Chunk, error) {
 		log.Fatalln(err)
 		return chunks, err
 	}
+
+	chunks, err = IncludeChunkHandle(chunks)
+	if err != nil {
+		log.Fatalln(err)
+		return chunks, err
+	}
+
 	chunks, err = CaptionChunkHandle(chunks)
 	if err != nil {
 		log.Fatalln(err)
@@ -310,6 +288,63 @@ func CaptionChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
 		}
 		chunk.(*KeywordChunk).Children[0].(WithIdCaption).SetCaption(caption.GetValue())
 	}
+	return outputChunks, nil
+}
+
+//IncludeChunkHandle filter the Include chunk, and import contents of the file it refers to
+func IncludeChunkHandle(inputChunks []Chunk) ([]Chunk, error) {
+	outputChunks := []Chunk{}
+
+	for _, chunk := range inputChunks {
+		keywordChunk, ok := chunk.(*KeywordChunk)
+		if !ok {
+			outputChunks = append(outputChunks, chunk)
+			continue
+		}
+
+		if keywordChunk.Keyword != IncludeKeyword {
+			outputChunks = append(outputChunks, chunk)
+			continue
+		}
+
+		//now it is include keyword, we first figure out the path of the included file.
+		//it is relative to the current file to be compiled or absolute path.
+		//Note: If the included file itself contains include keyword,
+		//it is still relative to the current file to be compiled(not the included file)
+		//Note: the implementation of include keyword has limitations.
+		//It is better the included content does not rely on chunks in other files. Otherwise, surprise may happens.
+		parentDir := filepath.Dir(gDoc.FilePath)
+		includedFileName := strings.Trim(keywordChunk.GetValue(), BlankChars)
+		absolutePath := false
+		if strings.HasPrefix(includedFileName, "/") || strings.HasPrefix(includedFileName, "\\") {
+			absolutePath = true
+		}
+		var parts []string
+		var includedFilePath string
+		if strings.Contains(includedFileName, "/") {
+			parts = strings.Split(includedFileName, "/")
+			if absolutePath {
+				includedFilePath = filepath.Join("/", filepath.Join(parts...))
+			} else {
+				includedFilePath = filepath.Join(parentDir, filepath.Join(parts...))
+			}
+		} else {
+			parts = strings.Split(includedFileName, "\\")
+			if absolutePath {
+				includedFilePath = filepath.Join("\\", filepath.Join(parts...))
+			} else {
+				includedFilePath = filepath.Join(parentDir, filepath.Join(parts...))
+			}
+		}
+		//included file to chunks, there are re-cursive calls inside
+		includedChunks, err := fileToChunks(includedFilePath)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		outputChunks = append(outputChunks, includedChunks...)
+	}
+
 	return outputChunks, nil
 }
 

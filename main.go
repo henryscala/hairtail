@@ -20,13 +20,23 @@ var (
 	gLanguage     = flag.String("language", "cn", "language of the output (cn|en)")
 )
 
-func CompileFile(inputFile, outputFile string) error {
+func fileToChunks(inputFile string) ([]Chunk, error) {
 	inputContent, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 	chunks, err := ParseChunks(string(inputContent))
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return chunks, nil
+}
+
+func CompileFile(inputFile, outputFile string) error {
+	gDoc.FilePath = inputFile
+	chunks, err := fileToChunks(inputFile)
 	if err != nil {
 		log.Println(err)
 		return err

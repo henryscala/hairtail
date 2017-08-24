@@ -1,6 +1,8 @@
 package main
 
 type Doc struct {
+	FilePath, //the file path of the document to be compiled
+
 	//meta data
 	Title,
 	SubTitle,

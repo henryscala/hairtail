@@ -12,7 +12,32 @@ the document verify meta data works in the output
 
 the document verify meta data works in the output 
 
-the document verify meta data works in the output 
+\--{this is simple comment} 
+
+\-- \r##{this is comment within raw block. Inside raw block,other elements may be included. 
+For example:
+
+	\h{block-tex} block tex 
+	
+	\tex{add1infinity} \r#{ 
+		1 + 2 + 3 + ... = - \frac {1} {12} \tag{1} 
+	}#
+	
+ }##
 
 the document verify meta data works in the output 
 
+the document verify meta data works in the output 
+
+\--{this is simple comment} 
+
+\-- \r##{this is comment within raw block. Inside raw block,other elements may be included. 
+For example:
+
+	\h{block-tex} block tex 
+	
+	\tex{add1infinity} \r#{ 
+		1 + 2 + 3 + ... = - \frac {1} {12} \tag{1} 
+	}#
+	
+ }##

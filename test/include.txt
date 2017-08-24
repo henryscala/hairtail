@@ -1,0 +1,13 @@
+test include function 
+
+\h{dontcare} included from tex.txt 
+
+\include tex.txt 
+
+\h{dontcare} included from table.txt 
+
+\include table.txt 
+
+\h{dontcare} included from list.txt 
+
+\include list.txt 

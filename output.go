@@ -14,6 +14,7 @@ var (
 	gHyperLinkTemplate    *template.Template
 	gInlineTexTemplate    *template.Template
 	gInlineCodeTemplate   *template.Template
+	gCommentTemplate      *template.Template
 	gBlockTexTemplate     *template.Template
 	gBlockCodeTemplate    *template.Template
 	gListTemplate         *template.Template
@@ -40,6 +41,7 @@ func init() {
 	gHyperLinkTemplate, _ = template.New("HyperLink").Parse(`<a href="{{.Url}}">{{.Text}}</a>`)
 	gInlineTexTemplate, _ = template.New("InlineTex").Parse(`<span class="inline-tex">\({{.}}\)</span>`) //need mathjax to support this
 	gInlineCodeTemplate, _ = template.New("InlineCode").Parse(`<code>{{.}}</code>`)
+	gCommentTemplate, _ = template.New("Comment").Parse(`<!--{{.}}-->` + "\n")
 	gBlockTexTemplate, _ = template.New("BlockTex").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><div class="math">\[{{.Value}}\]</div>` + "\n")
 	gBlockCodeTemplate, _ = template.New("BlockCode").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><pre>{{.Value}}</pre>` + "\n")
 	gListTemplate, _ = template.New("List").Parse(`<p><a id="{{.Id}}" class="caption">{{.Numbering}} {{.Caption}}</a></p><{{.ListType}}>{{.Value}}</{{.ListType}}>` + "\n")
@@ -201,6 +203,12 @@ func KeywordChunkRender(chunk Chunk) (string, error) {
 			return text, err
 		}
 		err = gInlineCodeTemplate.Execute(&buf, text)
+		if err != nil {
+			log.Println(err)
+			return text, err
+		}
+	case CommentKeyword:
+		err = gCommentTemplate.Execute(&buf, keywordChunk.Children[0].GetValue())
 		if err != nil {
 			log.Println(err)
 			return text, err
